@@ -117,6 +117,126 @@
   }
 
 
+  /* Interaction checker */
+  .interaction-panel {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1.5px solid #dde5f0;
+    border-radius: 10px;
+    background: #f8fbff;
+  }
+  .interaction-panel label {
+    font-size: 0.78rem;
+    color: var(--text);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .companion-wrap { position: relative; }
+  #companion-input { padding-right: 36px; }
+  .interaction-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .interaction-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #e9f2ff;
+    color: var(--primary);
+    font-size: 0.76rem;
+    font-weight: 700;
+    border: 1px solid #cfe0f8;
+  }
+  .interaction-chip button {
+    border: none;
+    background: transparent;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    padding: 0;
+  }
+  .interaction-hint {
+    font-size: 0.73rem;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.35;
+  }
+  .interaction-box {
+    border-radius: 10px;
+    padding: 11px 13px;
+    margin: 10px 0 14px;
+    border: 1.5px solid #dde5f0;
+    background: #f8fbff;
+  }
+  .interaction-box.has-warnings {
+    border-color: #ffcc80;
+    background: #fff8ed;
+  }
+  .interaction-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+  .interaction-warning {
+    border-left: 4px solid #f0ad4e;
+    background: #fff;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 7px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .interaction-warning.high { border-left-color: var(--danger); }
+  .interaction-warning.medium { border-left-color: var(--warning); }
+  .interaction-warning.low { border-left-color: #4b89dc; }
+  .interaction-warning .iw-head {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:8px;
+    font-size:0.82rem;
+    font-weight:800;
+    color:var(--text);
+    margin-bottom:4px;
+  }
+  .interaction-warning .iw-level {
+    white-space:nowrap;
+    border-radius:999px;
+    padding:2px 7px;
+    font-size:0.68rem;
+    color:#fff;
+    background:#4b89dc;
+  }
+  .interaction-warning.high .iw-level { background: var(--danger); }
+  .interaction-warning.medium .iw-level { background: var(--warning); }
+  .interaction-warning.low .iw-level { background: #4b89dc; }
+  .interaction-warning .iw-body {
+    font-size:0.8rem;
+    color:var(--text);
+    line-height:1.4;
+  }
+  .interaction-warning .iw-action {
+    margin-top:5px;
+    font-size:0.78rem;
+    color:var(--primary);
+    font-weight:700;
+  }
+  .interaction-source {
+    font-size:0.72rem;
+    color:var(--muted);
+    margin-top:7px;
+    border-top:1px dashed #d9e2ef;
+    padding-top:6px;
+  }
+
+
   .toggle-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.15s; margin-top: 6px; }
   .toggle-row:hover { border-color: var(--warning); background: #fef9f0; }
   .toggle-row input[type=checkbox] { accent-color: var(--warning); width: 16px; height: 16px; }
@@ -409,6 +529,30 @@
       </select>
       <div style="font-size:0.74rem;color:var(--muted);margin-top:5px">
         Có thể lọc theo nhóm: Penicillin, Cephalosporin, Carbapenem, Quinolone, Macrolide, Aminoglycoside, Kháng nấm...
+      </div>
+
+      <div class="interaction-panel">
+        <label>Kháng sinh/kháng nấm phối hợp hoặc đang dùng kèm</label>
+        <div class="autocomplete-wrap companion-wrap">
+          <input type="text" id="companion-input" placeholder="Gõ để thêm kháng sinh/kháng nấm dùng kèm..." autocomplete="off">
+          <div class="suggestions" id="companion-suggestions" style="display:none"></div>
+        </div>
+        <div class="interaction-chips" id="companion-chips"></div>
+        <div class="interaction-hint">
+          Hệ thống tự cảnh báo các tương tác/phối hợp cần lưu ý giữa các kháng sinh, kháng nấm đã chọn.
+        </div>
+      </div>
+
+      <div class="interaction-panel">
+        <label>Thuốc khác đang dùng đồng thời</label>
+        <div class="autocomplete-wrap companion-wrap">
+          <input type="text" id="comed-input" placeholder="VD: Warfarin, Amiodarone, Furosemide, Valproate..." autocomplete="off">
+          <div class="suggestions" id="comed-suggestions" style="display:none"></div>
+        </div>
+        <div class="interaction-chips" id="comed-chips"></div>
+        <div class="interaction-hint">
+          Thêm các thuốc dùng kèm để cảnh báo tương tác phổ biến có ý nghĩa lâm sàng cao. Có thể gõ tên hoạt chất hoặc tên nhóm: NSAID, ACEI, SSRI, statin...
+        </div>
       </div>
     </div>
 
@@ -1648,6 +1792,8 @@ const AB = [
 
 // ─── UTILITY ──────────────────────────────────────────────────────────────────
 let selectedAB = null;
+let companionABIds = [];
+let coMedIds = [];
 let currentAltIndex = 0;
 let dialysis = false;
 let currentWeight = 60;
@@ -1862,6 +2008,824 @@ function formatPrepStructured(ab, d) {
   return { drug_line, solvent_line, rate_line, critical: critical.slice(0, 2) };
 }
 
+
+// ─── ANTIBIOTIC INTERACTION CHECKER ───────────────────────────────────────────
+// CSDL cảnh báo tương tác/phối hợp kháng sinh được biên soạn ở mức hỗ trợ sàng lọc.
+// Nguồn tham khảo triển khai: Hướng dẫn sử dụng kháng sinh BYT 2015; Quyết định
+// 5631/QĐ-BYT về quản lý sử dụng kháng sinh; cảnh báo an toàn fluoroquinolon của
+// Cục Quản lý Dược; tài liệu Tương tác thuốc trong thực hành lâm sàng của dược lâm sàng.
+// Không thay thế đánh giá lâm sàng, TDM, ECG, chức năng thận/gan và thông tin kê đơn.
+
+
+const CO_MED_DB = [
+  {id:'warfarin', name:'Warfarin', group:'Kháng đông', aliases:['warfarin','coumadin']},
+  {id:'acenocoumarol', name:'Acenocoumarol', group:'Kháng đông', aliases:['acenocoumarol','sintrom']},
+  {id:'rivaroxaban', name:'Rivaroxaban', group:'DOAC', aliases:['rivaroxaban','xarelto']},
+  {id:'apixaban', name:'Apixaban', group:'DOAC', aliases:['apixaban','eliquis']},
+  {id:'dabigatran', name:'Dabigatran', group:'DOAC', aliases:['dabigatran','pradaxa']},
+  {id:'heparin', name:'Heparin/LMWH', group:'Kháng đông', aliases:['heparin','enoxaparin','nadroparin','dalteparin','lmwh']},
+
+  {id:'amiodarone', name:'Amiodarone', group:'Kéo dài QT', aliases:['amiodarone','cordarone']},
+  {id:'sotalol', name:'Sotalol', group:'Kéo dài QT', aliases:['sotalol']},
+  {id:'quinidine', name:'Quinidine', group:'Kéo dài QT', aliases:['quinidine','quinidin']},
+  {id:'haloperidol', name:'Haloperidol', group:'Kéo dài QT', aliases:['haloperidol','haldol']},
+  {id:'domperidone', name:'Domperidone', group:'Kéo dài QT', aliases:['domperidone','domperidon','motilium']},
+  {id:'ondansetron', name:'Ondansetron', group:'Kéo dài QT', aliases:['ondansetron','zofran']},
+
+  {id:'digoxin', name:'Digoxin', group:'Tim mạch', aliases:['digoxin','lanoxin']},
+  {id:'verapamil', name:'Verapamil', group:'CCB', aliases:['verapamil']},
+  {id:'diltiazem', name:'Diltiazem', group:'CCB', aliases:['diltiazem']},
+  {id:'amlodipine', name:'Amlodipine', group:'CCB', aliases:['amlodipine']},
+
+  {id:'simvastatin', name:'Simvastatin', group:'Statin', aliases:['simvastatin','zocor']},
+  {id:'atorvastatin', name:'Atorvastatin', group:'Statin', aliases:['atorvastatin','lipitor']},
+  {id:'rosuvastatin', name:'Rosuvastatin', group:'Statin', aliases:['rosuvastatin','crestor']},
+
+  {id:'valproate', name:'Valproate/Acid valproic', group:'Chống động kinh', aliases:['valproate','valproic','acid valproic','valproat','depakine']},
+  {id:'phenytoin', name:'Phenytoin', group:'Chống động kinh', aliases:['phenytoin','phenytoin natri','dilantin']},
+  {id:'carbamazepine', name:'Carbamazepine', group:'Chống động kinh', aliases:['carbamazepine','tegretol']},
+
+  {id:'theophylline', name:'Theophylline', group:'Hô hấp', aliases:['theophylline','theophylin','aminophylline','aminophylin']},
+  {id:'caffeine', name:'Caffeine liều cao', group:'Xanthine', aliases:['caffeine','cafein']},
+
+  {id:'furosemide', name:'Furosemide', group:'Lợi tiểu quai', aliases:['furosemide','lasix']},
+  {id:'bumetanide', name:'Bumetanide', group:'Lợi tiểu quai', aliases:['bumetanide']},
+  {id:'spironolactone', name:'Spironolactone', group:'Giữ kali', aliases:['spironolactone','spironolacton','aldactone']},
+  {id:'acei', name:'ACEI', group:'Tăng kali', aliases:['acei','ức chế men chuyển','enalapril','perindopril','captopril','lisinopril','ramipril']},
+  {id:'arb', name:'ARB', group:'Tăng kali', aliases:['arb','losartan','valsartan','telmisartan','irbesartan','candesartan']},
+  {id:'potassium', name:'Kali bổ sung', group:'Tăng kali', aliases:['kali','potassium','kcl','kaliclorid','kalium']},
+
+  {id:'ibuprofen', name:'Ibuprofen', group:'NSAID', aliases:['ibuprofen']},
+  {id:'diclofenac', name:'Diclofenac', group:'NSAID', aliases:['diclofenac','voltaren']},
+  {id:'ketorolac', name:'Ketorolac', group:'NSAID', aliases:['ketorolac']},
+  {id:'naproxen', name:'Naproxen', group:'NSAID', aliases:['naproxen']},
+  {id:'celecoxib', name:'Celecoxib', group:'NSAID', aliases:['celecoxib','celebrex']},
+
+  {id:'tacrolimus', name:'Tacrolimus', group:'Ức chế miễn dịch', aliases:['tacrolimus','prograf']},
+  {id:'cyclosporine', name:'Cyclosporine', group:'Ức chế miễn dịch', aliases:['cyclosporine','cyclosporin','ciclosporin','sandimmun']},
+  {id:'methotrexate', name:'Methotrexate', group:'DMARD/kháng folate', aliases:['methotrexate','mtx']},
+  {id:'colchicine', name:'Colchicine', group:'Gout', aliases:['colchicine','colchicin']},
+  {id:'allopurinol', name:'Allopurinol', group:'Gout', aliases:['allopurinol']},
+
+  {id:'metformin', name:'Metformin', group:'Đái tháo đường', aliases:['metformin','glucophage']},
+  {id:'insulin', name:'Insulin', group:'Đái tháo đường', aliases:['insulin']},
+  {id:'sulfonylurea', name:'Sulfonylurea', group:'Đái tháo đường', aliases:['sulfonylurea','gliclazide','glimepiride','glibenclamide','glyburide']},
+
+  {id:'sertraline', name:'Sertraline', group:'Serotonergic', aliases:['sertraline','zoloft']},
+  {id:'fluoxetine', name:'Fluoxetine', group:'Serotonergic', aliases:['fluoxetine','prozac']},
+  {id:'paroxetine', name:'Paroxetine', group:'Serotonergic', aliases:['paroxetine']},
+  {id:'escitalopram', name:'Escitalopram/Citalopram', group:'Serotonergic', aliases:['escitalopram','citalopram']},
+  {id:'venlafaxine', name:'Venlafaxine', group:'Serotonergic', aliases:['venlafaxine']},
+  {id:'duloxetine', name:'Duloxetine', group:'Serotonergic', aliases:['duloxetine']},
+  {id:'tramadol', name:'Tramadol', group:'Serotonergic', aliases:['tramadol']},
+  {id:'maoi', name:'MAOI', group:'Serotonergic', aliases:['maoi','phenelzine','tranylcypromine','moclobemide']},
+
+  {id:'antacid', name:'Antacid chứa Al/Mg', group:'Ion đa hóa trị', aliases:['antacid','maalox','aluminium','aluminum','magnesium','nhôm','magie','magnesi']},
+  {id:'iron', name:'Sắt', group:'Ion đa hóa trị', aliases:['iron','sắt','ferrous','fumarate sắt','sulfate sắt']},
+  {id:'calcium', name:'Calcium', group:'Ion đa hóa trị', aliases:['calcium','canxi','calci']},
+  {id:'zinc', name:'Kẽm/Zinc', group:'Ion đa hóa trị', aliases:['zinc','kẽm']},
+  {id:'sucralfate', name:'Sucralfate', group:'Ion đa hóa trị', aliases:['sucralfate']},
+
+  {id:'prednisolone', name:'Corticosteroid', group:'Corticosteroid', aliases:['prednisolone','prednisone','methylprednisolone','dexamethasone','corticoid','corticosteroid']},
+  {id:'lithium', name:'Lithium', group:'Tâm thần', aliases:['lithium','lithi']},
+  {id:'alcohol', name:'Rượu/ethanol', group:'Khác', aliases:['alcohol','ethanol','rượu','bia']},
+  {id:'oral_contraceptive', name:'Thuốc tránh thai đường uống', group:'Nội tiết', aliases:['oral contraceptive','thuốc tránh thai','estrogen','ethinyl estradiol','levonorgestrel']}
+];
+
+function normalizeTextVN(s = '') {
+  return String(s).toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9+./ -]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getCoMedById(id) {
+  return CO_MED_DB.find(x => x.id === id);
+}
+
+function getSelectedCoMeds() {
+  return coMedIds.map(getCoMedById).filter(Boolean);
+}
+
+function searchCoMeds(val = '') {
+  const q = normalizeTextVN(val);
+  let base = CO_MED_DB.slice().sort((a, b) =>
+    (a.group || '').localeCompare(b.group || '', 'vi') ||
+    (a.name || '').localeCompare(b.name || '', 'vi')
+  );
+  if (!q) return base.slice(0, 60);
+  return base.filter(d =>
+    normalizeTextVN(d.name).includes(q) ||
+    normalizeTextVN(d.group).includes(q) ||
+    (d.aliases || []).some(a => normalizeTextVN(a).includes(q))
+  ).slice(0, 40);
+}
+
+function coMedIs(med, ids) {
+  return med && ids.includes(med.id);
+}
+
+function coMedGroup(med, group) {
+  return med && normalizeTextVN(med.group) === normalizeTextVN(group);
+}
+
+function abIs(ab, ids) {
+  return ab && ids.includes(ab.id);
+}
+
+function abGroupIs(ab, groups) {
+  const g = normalizeGroupName(ab?.group || '');
+  return groups.includes(g);
+}
+
+function addDrugInteraction(list, seen, ab, med, severity, title, mechanism, action, source = INTERACTION_SOURCE_TEXT) {
+  const key = `comed__${ab?.id || 'ab'}__${med?.id || 'med'}__${title}`;
+  if (seen.has(key)) return;
+  seen.add(key);
+  list.push({
+    severity,
+    title,
+    pair: `${ab.name} + ${med.name}`,
+    mechanism,
+    action,
+    source,
+    type: 'co-med'
+  });
+}
+
+function checkAntibioticCoMedInteraction(ab, med, list, seen) {
+  if (!ab || !med) return;
+  const g = normalizeGroupName(ab.group);
+
+  // Carbapenem - valproate
+  if (g === 'carbapenem' && coMedIs(med, ['valproate'])) {
+    addDrugInteraction(list, seen, ab, med, 'high',
+      'Làm giảm nhanh nồng độ valproate',
+      'Carbapenem có thể làm giảm mạnh nồng độ acid valproic/valproate, nguy cơ mất kiểm soát động kinh và co giật.',
+      'Tránh phối hợp nếu có thể. Đổi kháng sinh hoặc dùng thuốc chống động kinh thay thế; không chỉ tăng liều valproate.'
+    );
+  }
+
+  // Warfarin / VKA
+  if (coMedIs(med, ['warfarin','acenocoumarol']) &&
+      (['fluoroquinolone','macrolide','azole_antifungal','polymyxin','lincosamide','tetracycline','oxazolidinone'].includes(g) ||
+       abIs(ab, ['metronidazole','cotrimoxazole','sulfamethoxazole_trimethoprim','rifampicin','rifampin']))) {
+    const sev = abIs(ab, ['metronidazole','cotrimoxazole','sulfamethoxazole_trimethoprim','fluconazole','voriconazole','clarithromycin','erythromycin','rifampicin','rifampin']) ? 'high' : 'medium';
+    addDrugInteraction(list, seen, ab, med, sev,
+      'Thay đổi INR/nguy cơ chảy máu',
+      'Nhiều kháng sinh/kháng nấm có thể làm thay đổi hệ vi khuẩn ruột, chuyển hóa hoặc gắn protein của thuốc kháng vitamin K; một số thuốc làm tăng INR rõ, trong khi rifampicin có thể làm giảm tác dụng chống đông.',
+      'Kiểm tra INR sớm sau 48–72 giờ và khi ngừng thuốc; chỉnh liều kháng đông theo INR. Cân nhắc lựa chọn kháng sinh khác nếu nguy cơ chảy máu cao.'
+    );
+  }
+
+  // DOAC + azoles/macrolides/rifampicin
+  if (coMedIs(med, ['rivaroxaban','apixaban','dabigatran'])) {
+    if (g === 'azole_antifungal' || abIs(ab, ['clarithromycin','erythromycin'])) {
+      addDrugInteraction(list, seen, ab, med, 'high',
+        'Tăng nồng độ DOAC/nguy cơ chảy máu',
+        'Azole và macrolide mạnh có thể ức chế CYP3A4/P-gp, làm tăng phơi nhiễm một số DOAC.',
+        'Tránh phối hợp nguy cơ cao hoặc chuyển thuốc ít tương tác; theo dõi chảy máu và chức năng thận.'
+      );
+    }
+    if (abIs(ab, ['rifampicin','rifampin'])) {
+      addDrugInteraction(list, seen, ab, med, 'high',
+        'Giảm tác dụng DOAC',
+        'Rifampicin cảm ứng CYP/P-gp mạnh, có thể làm giảm nồng độ DOAC và tăng nguy cơ huyết khối.',
+        'Tránh phối hợp; cân nhắc phác đồ chống đông thay thế có theo dõi phù hợp.'
+      );
+    }
+  }
+
+  // QT prolongation
+  if ((g === 'fluoroquinolone' || g === 'macrolide' || g === 'azole_antifungal') &&
+      coMedIs(med, ['amiodarone','sotalol','quinidine','haloperidol','domperidone','ondansetron','escitalopram'])) {
+    addDrugInteraction(list, seen, ab, med, 'high',
+      'Tăng nguy cơ kéo dài QT/xoắn đỉnh',
+      'Kháng sinh/kháng nấm được chọn và thuốc dùng kèm đều có nguy cơ kéo dài QT, nguy cơ cao hơn khi hạ K/Mg, bệnh tim, người cao tuổi hoặc suy thận.',
+      'Tránh phối hợp nếu có thể. Nếu bắt buộc: ECG trước/sau dùng, kiểm K+/Mg2+, tránh khi QTc > 500 ms.'
+    );
+  }
+
+  // Macrolide/azole + statin
+  if ((g === 'macrolide' || g === 'azole_antifungal') && coMedIs(med, ['simvastatin','atorvastatin'])) {
+    addDrugInteraction(list, seen, ab, med, med.id === 'simvastatin' ? 'high' : 'medium',
+      'Tăng nguy cơ bệnh cơ/tiêu cơ vân do statin',
+      'Clarithromycin/erythromycin và nhiều azole ức chế CYP3A4, làm tăng nồng độ simvastatin/atorvastatin.',
+      'Tạm ngừng statin trong thời gian dùng thuốc ức chế mạnh, hoặc đổi sang statin ít tương tác. Theo dõi đau cơ, CK nếu có triệu chứng.'
+    );
+  }
+
+  // Macrolide/azole + colchicine
+  if ((g === 'macrolide' || g === 'azole_antifungal') && coMedIs(med, ['colchicine'])) {
+    addDrugInteraction(list, seen, ab, med, 'high',
+      'Tăng độc tính colchicine',
+      'Ức chế CYP3A4/P-gp có thể làm tăng nồng độ colchicine; nguy cơ đặc biệt cao ở bệnh nhân suy thận.',
+      'Tránh phối hợp, nhất là khi CrCl giảm. Nếu bắt buộc, giảm/ngừng colchicine và theo dõi tiêu chảy, giảm bạch cầu, tiêu cơ vân.'
+    );
+  }
+
+  // Macrolide/azole + tacrolimus/cyclosporine
+  if ((g === 'macrolide' || g === 'azole_antifungal') && coMedIs(med, ['tacrolimus','cyclosporine'])) {
+    addDrugInteraction(list, seen, ab, med, 'high',
+      'Tăng nồng độ thuốc ức chế miễn dịch và độc thận',
+      'Ức chế CYP3A4/P-gp có thể làm tăng nồng độ tacrolimus/cyclosporine, gây độc thận, tăng kali và độc thần kinh.',
+      'Theo dõi nồng độ đáy, creatinine, kali; cần giảm liều và hội chẩn bác sĩ ghép tạng/dược lâm sàng.'
+    );
+  }
+
+  // Rifampicin induction
+  if (abIs(ab, ['rifampicin','rifampin']) && coMedIs(med, ['warfarin','acenocoumarol','tacrolimus','cyclosporine','carbamazepine','phenytoin','simvastatin','atorvastatin','oral_contraceptive'])) {
+    addDrugInteraction(list, seen, ab, med, 'high',
+      'Rifampicin cảm ứng enzym làm giảm hiệu lực thuốc dùng kèm',
+      'Rifampicin là chất cảm ứng mạnh CYP/P-gp, có thể làm giảm nồng độ nhiều thuốc, gây thất bại điều trị hoặc mất hiệu quả tránh thai/chống đông/ức chế miễn dịch.',
+      'Tránh phối hợp khi có lựa chọn khác; theo dõi nồng độ/hiệu quả lâm sàng và chỉnh liều. Tư vấn biện pháp tránh thai không nội tiết.'
+    );
+  }
+
+  // Ciprofloxacin - theophylline/caffeine
+  if (abIs(ab, ['ciprofloxacin']) && coMedIs(med, ['theophylline','caffeine'])) {
+    addDrugInteraction(list, seen, ab, med, 'high',
+      'Tăng nồng độ methylxanthine',
+      'Ciprofloxacin ức chế chuyển hóa theophylline/caffeine, làm tăng nguy cơ buồn nôn, run, nhịp nhanh, co giật và loạn nhịp.',
+      'Tránh phối hợp với theophylline nếu có thể; nếu bắt buộc, giảm liều và theo dõi nồng độ/theo dõi độc tính.'
+    );
+  }
+
+  // Macrolide - digoxin/theophylline/carbamazepine/CCB
+  if (g === 'macrolide' && coMedIs(med, ['digoxin','theophylline','carbamazepine','verapamil','diltiazem','amlodipine'])) {
+    const sev = coMedIs(med, ['digoxin','carbamazepine','verapamil','diltiazem']) ? 'medium' : 'low';
+    addDrugInteraction(list, seen, ab, med, sev,
+      'Macrolide có thể làm tăng độc tính thuốc dùng kèm',
+      'Một số macrolide, đặc biệt clarithromycin/erythromycin, ức chế CYP3A4/P-gp và có thể làm tăng nồng độ digoxin, carbamazepine, theophylline hoặc thuốc chẹn kênh calcium.',
+      'Theo dõi triệu chứng độc tính, mạch/huyết áp, nồng độ thuốc nếu có; ưu tiên azithromycin khi phù hợp vì ít ức chế CYP hơn.'
+    );
+  }
+
+  // Fluoroquinolone - divalent cations
+  if (g === 'fluoroquinolone' && coMedIs(med, ['antacid','iron','calcium','zinc','sucralfate'])) {
+    addDrugInteraction(list, seen, ab, med, 'medium',
+      'Giảm hấp thu fluoroquinolone',
+      'Ion đa hóa trị tạo phức chelat với fluoroquinolone đường uống, làm giảm hấp thu và giảm hiệu quả điều trị.',
+      'Uống fluoroquinolone cách xa ion đa hóa trị: thường trước ít nhất 2 giờ hoặc sau 4–6 giờ; cân nhắc đường IV nếu nhiễm khuẩn nặng.'
+    );
+  }
+
+  // Tetracycline - divalent cations
+  if (g === 'tetracycline' && coMedIs(med, ['antacid','iron','calcium','zinc','sucralfate'])) {
+    addDrugInteraction(list, seen, ab, med, 'medium',
+      'Giảm hấp thu tetracycline/doxycycline',
+      'Ion đa hóa trị tạo phức chelat với tetracycline, làm giảm hấp thu đường uống.',
+      'Uống cách xa chế phẩm chứa Al/Mg/Ca/Fe/Zn hoặc sucralfate; đánh giá lại hiệu quả điều trị.'
+    );
+  }
+
+  // Linezolid serotonergic
+  if (g === 'oxazolidinone' && coMedIs(med, ['sertraline','fluoxetine','paroxetine','escitalopram','venlafaxine','duloxetine','tramadol','maoi'])) {
+    addDrugInteraction(list, seen, ab, med, 'high',
+      'Nguy cơ hội chứng serotonin',
+      'Linezolid là chất ức chế MAO thuận nghịch không chọn lọc; phối hợp thuốc serotonergic làm tăng nguy cơ hội chứng serotonin.',
+      'Tránh phối hợp nếu có thể. Nếu bắt buộc: theo dõi kích động, tăng thân nhiệt, tăng phản xạ, tiêu chảy; cân nhắc ngừng thuốc serotonergic theo chỉ định.'
+    );
+  }
+
+  // Nephrotoxic combos
+  const nephrotoxicAB = ['aminoglycoside','glycopeptide','polymyxin','polyene_antifungal'];
+  if (nephrotoxicAB.includes(g) && coMedIs(med, ['furosemide','bumetanide','ibuprofen','diclofenac','ketorolac','naproxen','celecoxib','tacrolimus','cyclosporine','lithium'])) {
+    addDrugInteraction(list, seen, ab, med, 'high',
+      'Tăng nguy cơ độc thận/độc tai',
+      'Kháng sinh/kháng nấm có độc tính thận/tai phối hợp với lợi tiểu quai, NSAID, thuốc ức chế miễn dịch hoặc lithium làm tăng nguy cơ AKI/độc tính.',
+      'Hạn chế phối hợp; theo dõi Scr, nước tiểu, điện giải. Ưu tiên TDM với vancomycin/aminoglycoside; cân nhắc thay thế NSAID/lợi tiểu nếu có thể.'
+    );
+  }
+
+  // Piperacillin/tazobactam + vancomycin-like? This is antibiotic-antibiotic handled partly by companion AB only.
+
+  // TMP-SMX
+  if (abIs(ab, ['cotrimoxazole','sulfamethoxazole_trimethoprim','trimethoprim_sulfamethoxazole'])) {
+    if (coMedIs(med, ['spironolactone','acei','arb','potassium','tacrolimus','cyclosporine'])) {
+      addDrugInteraction(list, seen, ab, med, 'high',
+        'Tăng nguy cơ tăng kali máu',
+        'Trimethoprim có tác dụng giống lợi tiểu giữ kali, làm tăng nguy cơ tăng kali máu, đặc biệt ở người suy thận hoặc dùng spironolactone/ACEI/ARB/tacrolimus.',
+        'Kiểm tra K+ và creatinine trong 2–3 ngày đầu; tránh phối hợp nguy cơ cao hoặc chọn kháng sinh khác nếu có thể.'
+      );
+    }
+    if (coMedIs(med, ['methotrexate'])) {
+      addDrugInteraction(list, seen, ab, med, 'high',
+        'Tăng độc tính methotrexate/ức chế tủy',
+        'Cotrimoxazole và methotrexate đều kháng folate; phối hợp làm tăng nguy cơ giảm bạch cầu, viêm niêm mạc, độc gan/thận.',
+        'Tránh phối hợp nếu có thể. Nếu bắt buộc: theo dõi công thức máu, chức năng gan thận; hội chẩn dược lâm sàng.'
+      );
+    }
+    if (coMedIs(med, ['phenytoin','sulfonylurea','warfarin','acenocoumarol'])) {
+      addDrugInteraction(list, seen, ab, med, 'medium',
+        'Cotrimoxazole làm tăng độc tính thuốc dùng kèm',
+        'Cotrimoxazole có thể ức chế chuyển hóa/gắn protein của một số thuốc như phenytoin, sulfonylurea và VKA.',
+        'Theo dõi dấu hiệu độc tính, đường huyết/INR hoặc nồng độ phenytoin nếu có.'
+      );
+    }
+  }
+
+  // Metronidazole
+  if (abIs(ab, ['metronidazole']) && coMedIs(med, ['warfarin','acenocoumarol','lithium','alcohol'])) {
+    addDrugInteraction(list, seen, ab, med, coMedIs(med, ['warfarin','acenocoumarol']) ? 'high' : 'medium',
+      'Tương tác đáng lưu ý với metronidazole',
+      'Metronidazole có thể làm tăng INR với VKA, tăng độc tính lithium; rượu có thể gây phản ứng kiểu disulfiram ở một số bệnh nhân.',
+      'Theo dõi INR/lithium nếu dùng kèm; tránh rượu trong và ít nhất 48–72 giờ sau khi ngừng metronidazole.'
+    );
+  }
+
+  // Fluoroquinolone dysglycemia/tendon/CNS
+  if (g === 'fluoroquinolone' && coMedIs(med, ['insulin','sulfonylurea','prednisolone','ibuprofen','diclofenac','ketorolac','naproxen','celecoxib'])) {
+    addDrugInteraction(list, seen, ab, med, coMedIs(med, ['prednisolone']) ? 'medium' : 'low',
+      'Tăng nguy cơ tác dụng bất lợi của fluoroquinolone',
+      'Fluoroquinolone có thể gây rối loạn đường huyết, kích thích thần kinh trung ương/co giật; dùng cùng corticosteroid làm tăng nguy cơ viêm/đứt gân.',
+      'Theo dõi đường huyết nếu dùng thuốc đái tháo đường; tránh phối hợp corticosteroid khi không cần; thận trọng ở người già/suy thận.'
+    );
+  }
+
+  // Beta-lactam/penicillin - methotrexate
+  if ((g === 'beta_lactam' || g === 'cephalosporin' || g === 'carbapenem') && coMedIs(med, ['methotrexate'])) {
+    addDrugInteraction(list, seen, ab, med, 'medium',
+      'Có thể tăng độc tính methotrexate',
+      'Một số beta-lactam có thể làm giảm thải trừ methotrexate qua thận, tăng nguy cơ độc tính, nhất là liều cao hoặc suy thận.',
+      'Theo dõi công thức máu, creatinine, men gan; cân nhắc tạm ngừng hoặc đổi thuốc theo bệnh cảnh.'
+    );
+  }
+
+  // Allopurinol + aminopenicillin
+  if (coMedIs(med, ['allopurinol']) && (abIs(ab, ['amoxicillin','ampicillin','ampicillin_sulbactam','amoxicillin_clavulanate']) || normalizeTextVN(ab.name).includes('amoxicillin') || normalizeTextVN(ab.name).includes('ampicillin'))) {
+    addDrugInteraction(list, seen, ab, med, 'low',
+      'Tăng nguy cơ phát ban với aminopenicillin',
+      'Allopurinol dùng cùng amoxicillin/ampicillin có thể làm tăng tỷ lệ phát ban.',
+      'Theo dõi phản ứng da; phân biệt phát ban do thuốc với dị ứng beta-lactam thật sự.'
+    );
+  }
+
+  // Ceftriaxone + calcium
+  if (abIs(ab, ['ceftriaxon','ceftriaxone']) && coMedIs(med, ['calcium'])) {
+    addDrugInteraction(list, seen, ab, med, 'medium',
+      'Không pha/trộn ceftriaxone với dung dịch chứa calcium',
+      'Ceftriaxone có thể tạo kết tủa với calcium trong dây truyền/dung dịch, đặc biệt nguy hiểm ở trẻ sơ sinh; người lớn vẫn cần tránh pha chung.',
+      'Không pha chung hoặc truyền đồng thời cùng dây với dung dịch chứa calcium; súc rửa dây truyền theo quy trình.'
+    );
+  }
+}
+
+
+const INTERACTION_SOURCE_TEXT =
+  'Nguồn tham khảo: Dược thư Quốc gia Việt Nam; CSDL tương tác thuốc của Trung tâm Thông tin y tế Quốc gia - Bộ Y tế; Hướng dẫn sử dụng kháng sinh Bộ Y tế; cảnh báo an toàn thuốc của Cục Quản lý Dược; tài liệu tương tác thuốc trong thực hành lâm sàng.';
+
+const INTERACTION_SEVERITY_LABEL = {
+  high: 'Cảnh báo cao',
+  medium: 'Thận trọng',
+  low: 'Theo dõi'
+};
+
+function normalizeGroupName(group = '') {
+  const g = String(group).toLowerCase();
+  if (g.includes('aminoglycoside')) return 'aminoglycoside';
+  if (g.includes('glycopeptide')) return 'glycopeptide';
+  if (g.includes('fluoroquinolone') || g.includes('quinolone')) return 'fluoroquinolone';
+  if (g.includes('macrolide')) return 'macrolide';
+  if (g.includes('azole')) return 'azole_antifungal';
+  if (g.includes('polyene')) return 'polyene_antifungal';
+  if (g.includes('polymyxin') || g.includes('polypeptid')) return 'polymyxin';
+  if (g.includes('tetracycline')) return 'tetracycline';
+  if (g.includes('lincosamid')) return 'lincosamide';
+  if (g.includes('oxazolidinone')) return 'oxazolidinone';
+  if (g.includes('carbapenem')) return 'carbapenem';
+  if (g.includes('cephalosporin')) return 'cephalosporin';
+  if (g.includes('penicillin') || g.includes('beta-lactam')) return 'beta_lactam';
+  return g.replace(/\s+/g, '_');
+}
+
+function isDrug(ab, ids) {
+  return ab && ids.includes(ab.id);
+}
+
+function pairKey(a, b) {
+  return [a.id, b.id].sort().join('__');
+}
+
+function addInteraction(list, seen, a, b, severity, title, mechanism, action, source = INTERACTION_SOURCE_TEXT) {
+  const key = pairKey(a, b) + '__' + title;
+  if (seen.has(key)) return;
+  seen.add(key);
+  list.push({
+    severity,
+    title,
+    pair: `${a.name} + ${b.name}`,
+    mechanism,
+    action,
+    source
+  });
+}
+
+function checkPairInteraction(a, b, list, seen) {
+  if (!a || !b || a.id === b.id) return;
+
+  const ga = normalizeGroupName(a.group);
+  const gb = normalizeGroupName(b.group);
+  const groups = new Set([ga, gb]);
+
+  // Độc thận/độc tai cộng gộp
+  const nephroOtoGroups = new Set(['aminoglycoside', 'glycopeptide', 'polymyxin', 'polyene_antifungal']);
+  if (nephroOtoGroups.has(ga) && nephroOtoGroups.has(gb) && ga !== gb) {
+    addInteraction(
+      list, seen, a, b, 'high',
+      'Tăng nguy cơ độc thận/độc tai khi phối hợp',
+      'Các nhóm này đều có nguy cơ độc thận và/hoặc độc tai; nguy cơ tăng rõ ở người suy thận, hồi sức, dùng kéo dài hoặc nồng độ đáy cao.',
+      'Chỉ phối hợp khi thật cần. Theo dõi creatinine, nước tiểu, thính lực; ưu tiên TDM với vancomycin/aminoglycoside; cân nhắc thay thế thuốc ít độc thận hơn.'
+    );
+  }
+
+  // Aminoglycoside cùng nhóm
+  if (ga === 'aminoglycoside' && gb === 'aminoglycoside') {
+    addInteraction(
+      list, seen, a, b, 'high',
+      'Không nên phối hợp hai aminoglycoside',
+      'Phối hợp cùng nhóm không tăng hiệu quả rõ nhưng tăng độc thận và độc tai.',
+      'Tránh phối hợp. Chọn một aminoglycoside phù hợp và theo dõi TDM nếu có chỉ định.'
+    );
+  }
+
+  // Glycopeptide cùng nhóm
+  if (ga === 'glycopeptide' && gb === 'glycopeptide') {
+    addInteraction(
+      list, seen, a, b, 'medium',
+      'Trùng phổ glycopeptide',
+      'Vancomycin và teicoplanin có phổ và đích tác dụng gần nhau; phối hợp thường không cần thiết.',
+      'Rà soát chỉ định, chọn một thuốc. Theo dõi nồng độ/độc tính nếu bắt buộc chuyển đổi hoặc chồng lấp ngắn.'
+    );
+  }
+
+  // QT: macrolide, fluoroquinolone, azole
+  const qtGroups = new Set(['macrolide', 'fluoroquinolone', 'azole_antifungal']);
+  if (qtGroups.has(ga) && qtGroups.has(gb)) {
+    addInteraction(
+      list, seen, a, b, 'medium',
+      'Tăng nguy cơ kéo dài QT/loạn nhịp',
+      'Macrolide, fluoroquinolone và một số azole có thể kéo dài QT; nguy cơ cao hơn khi phối hợp, hạ K/Mg, bệnh tim, người cao tuổi hoặc đang dùng thuốc kéo dài QT khác.',
+      'Cân nhắc lựa chọn khác nếu có nguy cơ. Kiểm tra ECG, K+, Mg2+; tránh phối hợp nhiều thuốc kéo dài QT.'
+    );
+  }
+
+  // Macrolide + clindamycin/lincosamide: đối kháng cùng vị trí 50S
+  if ((ga === 'macrolide' && gb === 'lincosamide') || (ga === 'lincosamide' && gb === 'macrolide')) {
+    addInteraction(
+      list, seen, a, b, 'medium',
+      'Có thể đối kháng tại tiểu đơn vị 50S',
+      'Macrolide và clindamycin/lincosamide cùng tác động lên tiểu đơn vị 50S; một số tài liệu dược lâm sàng khuyến cáo tránh phối hợp erythromycin với clindamycin.',
+      'Không phối hợp thường quy. Nếu cần bao phủ độc tố/vi khuẩn đặc biệt, hội chẩn Dược lâm sàng/Vi sinh.'
+    );
+  }
+
+  // Tetracycline + beta-lactam: cảnh báo dược lực học cổ điển, không tuyệt đối
+  if ((ga === 'tetracycline' && (gb === 'beta_lactam' || gb === 'cephalosporin' || gb === 'carbapenem')) ||
+      (gb === 'tetracycline' && (ga === 'beta_lactam' || ga === 'cephalosporin' || ga === 'carbapenem'))) {
+    addInteraction(
+      list, seen, a, b, 'low',
+      'Lưu ý phối hợp kìm khuẩn + diệt khuẩn',
+      'Tetracycline là thuốc kìm khuẩn; beta-lactam/cephalosporin/carbapenem là thuốc diệt khuẩn phụ thuộc tăng trưởng vi khuẩn. Ý nghĩa lâm sàng tùy bệnh cảnh.',
+      'Không tự động chống chỉ định. Rà soát chỉ định, tác nhân, vị trí nhiễm khuẩn; tránh phối hợp không cần thiết trong nhiễm khuẩn nặng cần diệt khuẩn nhanh.'
+    );
+  }
+
+  // Carbapenem + carbapenem / beta-lactam trùng phổ
+  if ((ga === 'carbapenem' && gb === 'carbapenem') || 
+      ((ga === 'cephalosporin' || ga === 'beta_lactam' || ga === 'carbapenem') &&
+       (gb === 'cephalosporin' || gb === 'beta_lactam' || gb === 'carbapenem') && a.id !== b.id)) {
+    addInteraction(
+      list, seen, a, b, 'low',
+      'Trùng phổ beta-lactam/carbapenem',
+      'Phối hợp nhiều beta-lactam thường làm trùng phổ, tăng chi phí và áp lực chọn lọc kháng thuốc; không phải tương tác dược động học điển hình.',
+      'Rà soát kháng sinh đồ và mục tiêu điều trị; cân nhắc xuống thang hoặc chọn một beta-lactam tối ưu.'
+    );
+  }
+
+  // Linezolid + rifampicin (nếu dữ liệu có rifampicin)
+  if ((isDrug(a, ['linezolid']) && isDrug(b, ['rifampicin', 'rifampin'])) ||
+      (isDrug(b, ['linezolid']) && isDrug(a, ['rifampicin', 'rifampin']))) {
+    addInteraction(
+      list, seen, a, b, 'medium',
+      'Rifampicin có thể làm giảm phơi nhiễm linezolid',
+      'Rifampicin cảm ứng chuyển hóa/vận chuyển thuốc, có thể làm giảm nồng độ linezolid ở một số bệnh nhân.',
+      'Theo dõi đáp ứng lâm sàng; cân nhắc TDM linezolid nếu có điều kiện hoặc lựa chọn thay thế.'
+    );
+  }
+}
+
+function getCompanionABs() {
+  return companionABIds
+    .map(id => AB.find(a => a.id === id))
+    .filter(Boolean);
+}
+
+function getInteractionWarnings(mainAb, companions = [], coMeds = []) {
+  const selected = [mainAb, ...companions].filter(Boolean);
+  const list = [];
+  const seen = new Set();
+
+  for (let i = 0; i < selected.length; i++) {
+    for (let j = i + 1; j < selected.length; j++) {
+      checkPairInteraction(selected[i], selected[j], list, seen);
+    }
+  }
+
+  selected.forEach(ab => {
+    coMeds.forEach(med => checkAntibioticCoMedInteraction(ab, med, list, seen));
+  });
+
+  const rank = { high: 0, medium: 1, low: 2 };
+  return list.sort((x, y) => (rank[x.severity] ?? 9) - (rank[y.severity] ?? 9));
+}
+
+function renderInteractionWarnings(mainAb) {
+  const companions = getCompanionABs();
+  const coMeds = getSelectedCoMeds();
+
+  if (!mainAb && !companions.length && !coMeds.length) return '';
+
+  const warnings = getInteractionWarnings(mainAb, companions, coMeds);
+  const abNames = [mainAb, ...companions].filter(Boolean).map(a => escapeHtml(a.name)).join(' + ');
+  const coMedNames = coMeds.map(m => escapeHtml(m.name)).join(', ');
+
+  if (!companions.length && !coMeds.length) {
+    return `
+      <div class="interaction-box">
+        <div class="interaction-title">⚕️ Cảnh báo tương tác thuốc</div>
+        <div style="font-size:0.8rem;color:var(--muted);line-height:1.4">
+          Chưa nhập thuốc phối hợp hoặc thuốc khác dùng đồng thời. Có thể thêm thuốc ở ô bên trái để hệ thống tự sàng lọc các cặp tương tác phổ biến, ưu tiên cảnh báo có ý nghĩa lâm sàng cao.
+        </div>
+        <div class="interaction-source">${INTERACTION_SOURCE_TEXT}</div>
+      </div>`;
+  }
+
+  if (!warnings.length) {
+    return `
+      <div class="interaction-box">
+        <div class="interaction-title">⚕️ Cảnh báo tương tác thuốc</div>
+        <div style="font-size:0.8rem;color:#2e7d32;line-height:1.4">
+          Chưa phát hiện tương tác nguy cơ cao trong bộ quy tắc hiện có.
+          ${abNames ? `<br><strong>Kháng sinh/kháng nấm:</strong> ${abNames}` : ''}
+          ${coMedNames ? `<br><strong>Thuốc khác:</strong> ${coMedNames}` : ''}
+          <br>Lưu ý: đây là bộ sàng lọc nhanh các cặp phổ biến; không thay thế tra cứu đầy đủ trên CSDL tương tác thuốc chính thức khi kê đơn.
+        </div>
+        <div class="interaction-source">${INTERACTION_SOURCE_TEXT}</div>
+      </div>`;
+  }
+
+  const highCount = warnings.filter(w => w.severity === 'high').length;
+
+  return `
+    <div class="interaction-box has-warnings">
+      <div class="interaction-title">⚠️ Cảnh báo tương tác thuốc ${highCount ? `<span style="color:var(--danger)">(${highCount} cảnh báo cao)</span>` : ''}</div>
+      ${warnings.map(w => `
+        <div class="interaction-warning ${w.severity}">
+          <div class="iw-head">
+            <span>${escapeHtml(w.pair)} — ${escapeHtml(w.title)}</span>
+            <span class="iw-level">${INTERACTION_SEVERITY_LABEL[w.severity] || 'Lưu ý'}</span>
+          </div>
+          <div class="iw-body">${escapeHtml(w.mechanism)}</div>
+          <div class="iw-action">Khuyến nghị: ${escapeHtml(w.action)}</div>
+        </div>
+      `).join('')}
+      <div class="interaction-source">${INTERACTION_SOURCE_TEXT}</div>
+    </div>`;
+}
+
+function appendInteractionWarnings(mainAb) {
+  const html = renderInteractionWarnings(mainAb);
+  if (!html) return;
+  const resultCard = document.querySelector('#result-area .result-card');
+  if (!resultCard) return;
+  const drugGroup = resultCard.querySelector('.drug-group');
+  if (drugGroup) drugGroup.insertAdjacentHTML('afterend', html);
+  else resultCard.insertAdjacentHTML('afterbegin', html);
+}
+
+function renderCompanionChips() {
+  const box = document.getElementById('companion-chips');
+  if (!box) return;
+  const drugs = getCompanionABs();
+  if (!drugs.length) {
+    box.innerHTML = '<span style="font-size:0.74rem;color:var(--muted)">Chưa thêm thuốc phối hợp</span>';
+    return;
+  }
+  box.innerHTML = drugs.map(a => `
+    <span class="interaction-chip">
+      ${escapeHtml(a.name)}
+      <button type="button" onclick="removeCompanionAB('${a.id}')" title="Bỏ thuốc này">×</button>
+    </span>
+  `).join('');
+}
+
+function addCompanionAB(id) {
+  if (!id) return;
+  if (selectedAB && selectedAB.id === id) {
+    showToast('⚠ Thuốc này đã là kháng sinh chính');
+    return;
+  }
+  if (!AB.some(a => a.id === id)) return;
+  if (!companionABIds.includes(id)) companionABIds.push(id);
+  const input = document.getElementById('companion-input');
+  if (input) input.value = '';
+  const sug = document.getElementById('companion-suggestions');
+  if (sug) sug.style.display = 'none';
+  renderCompanionChips();
+}
+
+function removeCompanionAB(id) {
+  companionABIds = companionABIds.filter(x => x !== id);
+  renderCompanionChips();
+}
+
+function renderCompanionSuggestions(val = '') {
+  const box = document.getElementById('companion-suggestions');
+  if (!box) return;
+  const query = (val || '').toLowerCase().trim();
+  const matches = searchAB(query)
+    .filter(a => !selectedAB || a.id !== selectedAB.id)
+    .filter(a => !companionABIds.includes(a.id))
+    .slice(0, 30);
+
+  if (!matches.length) {
+    box.style.display = 'none';
+    return;
+  }
+
+  let html = '';
+  let lastGroup = '';
+  matches.forEach((a, i) => {
+    if (a.group !== lastGroup) {
+      lastGroup = a.group;
+      html += `<div style="padding:7px 12px 4px;background:#f3f6fb;color:var(--primary);font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;border-top:1px solid var(--border)">${escapeHtml(lastGroup)}</div>`;
+    }
+    html += `<div class="item${i===0?' active':''}" data-id="${a.id}" onmousedown="addCompanionAB('${a.id}')">
+      <div>
+        <div class="drug-suggest-name" style="font-weight:600">${highlight(escapeHtml(a.name), query)}</div>
+        <div style="font-size:0.75rem;color:#888">${escapeHtml(a.route || '')}</div>
+      </div>
+      <span class="badge">${escapeHtml((a.group || '').split(' ')[0])}</span>
+    </div>`;
+  });
+  box.innerHTML = html;
+  box.style.display = 'block';
+}
+
+function initCompanionAutocomplete() {
+  const input = document.getElementById('companion-input');
+  const box = document.getElementById('companion-suggestions');
+  if (!input || !box) return;
+
+  input.addEventListener('input', function() {
+    renderCompanionSuggestions(this.value);
+  });
+
+  input.addEventListener('focus', function() {
+    renderCompanionSuggestions(this.value);
+  });
+
+  input.addEventListener('keydown', function(e) {
+    const items = [...box.querySelectorAll('.item')];
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const active = box.querySelector('.item.active');
+      if (active && box.style.display !== 'none') addCompanionAB(active.dataset.id);
+      else if (items.length && box.style.display !== 'none') addCompanionAB(items[0].dataset.id);
+      return;
+    }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const cur = items.findIndex(i => i.classList.contains('active'));
+      items.forEach(i => i.classList.remove('active'));
+      let nxt = e.key === 'ArrowDown' ? cur + 1 : cur - 1;
+      if (nxt < 0) nxt = items.length - 1;
+      if (nxt >= items.length) nxt = 0;
+      if (items[nxt]) items[nxt].classList.add('active');
+    }
+    if (e.key === 'Escape') {
+      box.style.display = 'none';
+    }
+  });
+
+  input.addEventListener('blur', function() {
+    setTimeout(() => box.style.display = 'none', 150);
+  });
+
+  renderCompanionChips();
+}
+
+
+function renderCoMedChips() {
+  const box = document.getElementById('comed-chips');
+  if (!box) return;
+  const meds = getSelectedCoMeds();
+  if (!meds.length) {
+    box.innerHTML = '<span style="font-size:0.74rem;color:var(--muted)">Chưa thêm thuốc khác dùng đồng thời</span>';
+    return;
+  }
+  box.innerHTML = meds.map(m => `
+    <span class="interaction-chip" style="background:#fff3e0;border-color:#ffe0b2;color:#bf6200">
+      ${escapeHtml(m.name)}
+      <button type="button" onclick="removeCoMed('${m.id}')" title="Bỏ thuốc này">×</button>
+    </span>
+  `).join('');
+}
+
+function addCoMed(id) {
+  if (!id) return;
+  if (!CO_MED_DB.some(m => m.id === id)) return;
+  if (!coMedIds.includes(id)) coMedIds.push(id);
+  const input = document.getElementById('comed-input');
+  if (input) input.value = '';
+  const sug = document.getElementById('comed-suggestions');
+  if (sug) sug.style.display = 'none';
+  renderCoMedChips();
+}
+
+function removeCoMed(id) {
+  coMedIds = coMedIds.filter(x => x !== id);
+  renderCoMedChips();
+}
+
+function renderCoMedSuggestions(val = '') {
+  const box = document.getElementById('comed-suggestions');
+  if (!box) return;
+  const query = normalizeTextVN(val);
+  const matches = searchCoMeds(query).filter(m => !coMedIds.includes(m.id)).slice(0, 40);
+
+  if (!matches.length) {
+    box.style.display = 'none';
+    return;
+  }
+
+  let html = '';
+  let lastGroup = '';
+  matches.forEach((m, i) => {
+    if (m.group !== lastGroup) {
+      lastGroup = m.group;
+      html += `<div style="padding:7px 12px 4px;background:#fff7ed;color:#bf6200;font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;border-top:1px solid var(--border)">${escapeHtml(lastGroup)}</div>`;
+    }
+    html += `<div class="item${i===0?' active':''}" data-id="${m.id}" onmousedown="addCoMed('${m.id}')">
+      <div>
+        <div class="drug-suggest-name" style="font-weight:600">${highlight(escapeHtml(m.name), val)}</div>
+        <div style="font-size:0.75rem;color:#888">${escapeHtml(m.aliases?.slice(0, 4).join(', ') || '')}</div>
+      </div>
+      <span class="badge">${escapeHtml(m.group || '')}</span>
+    </div>`;
+  });
+
+  box.innerHTML = html;
+  box.style.display = 'block';
+}
+
+function initCoMedAutocomplete() {
+  const input = document.getElementById('comed-input');
+  const box = document.getElementById('comed-suggestions');
+  if (!input || !box) return;
+
+  input.addEventListener('input', function() {
+    renderCoMedSuggestions(this.value);
+  });
+
+  input.addEventListener('focus', function() {
+    renderCoMedSuggestions(this.value);
+  });
+
+  input.addEventListener('keydown', function(e) {
+    const items = [...box.querySelectorAll('.item')];
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const active = box.querySelector('.item.active');
+      if (active && box.style.display !== 'none') addCoMed(active.dataset.id);
+      else if (items.length && box.style.display !== 'none') addCoMed(items[0].dataset.id);
+      return;
+    }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const cur = items.findIndex(i => i.classList.contains('active'));
+      items.forEach(i => i.classList.remove('active'));
+      let nxt = e.key === 'ArrowDown' ? cur + 1 : cur - 1;
+      if (nxt < 0) nxt = items.length - 1;
+      if (nxt >= items.length) nxt = 0;
+      if (items[nxt]) items[nxt].classList.add('active');
+    }
+    if (e.key === 'Escape') {
+      box.style.display = 'none';
+    }
+  });
+
+  input.addEventListener('blur', function() {
+    setTimeout(() => box.style.display = 'none', 150);
+  });
+
+  renderCoMedChips();
+}
+
+
 // ─── HISTORY ──────────────────────────────────────────────────────────────────
 const HIST_KEY = 'ab_calc_hist_v2';
 
@@ -1928,8 +2892,14 @@ function loadHist(index) {
   if (!ab) return;
 
   selectedAB = ab;
+  companionABIds = (entry.companion_ab_ids || entry.render_data?.companion_ab_ids || [])
+    .filter(id => id !== ab.id && AB.some(a => a.id === id));
+  coMedIds = (entry.co_med_ids || entry.render_data?.co_med_ids || [])
+    .filter(id => CO_MED_DB.some(m => m.id === id));
   document.getElementById('antibiotic-input').value = ab.name;
   document.getElementById('clear-btn').style.display = 'block';
+  renderCompanionChips();
+  renderCoMedChips();
 
   const patientInput = document.getElementById('patient-name');
   if (patientInput) patientInput.value = entry.patient_name || '';
@@ -2106,10 +3076,13 @@ function highlight(str, q) {
 
 function selectAB(id) {
   selectedAB = AB.find(a => a.id === id);
+  if (!selectedAB) return;
+  companionABIds = companionABIds.filter(x => x !== id);
   currentAltIndex = 0;
   document.getElementById('antibiotic-input').value = selectedAB.name;
   document.getElementById('clear-btn').style.display = 'block';
   document.getElementById('suggestions').style.display = 'none';
+  renderCompanionChips();
 }
 
 // ─── ENTER NAVIGATION ─────────────────────────────────────────────────────────
@@ -2340,10 +3313,14 @@ function calculate() {
     patient_name: patientName,
     ab_name: selectedAB.name,
     ab_id: selectedAB.id,
+    companion_ab_ids: [...companionABIds],
+    co_med_ids: [...coMedIds],
     crcl,
     render_data: {
       patient_name: patientName,
       ab_id: selectedAB.id,
+      companion_ab_ids: [...companionABIds],
+      co_med_ids: [...coMedIds],
       crcl,
       cat,
       isDialysis: dialysis,
@@ -2370,6 +3347,11 @@ function resetAll() {
   document.querySelector('input[name=gender][value=male]').checked = true;
 
   clearAntibiotic();
+  companionABIds = [];
+  coMedIds = [];
+  const compInput = document.getElementById('companion-input');
+  if (compInput) compInput.value = '';
+  renderCompanionChips();
 
   if (dialysis) toggleDialysis();
 
@@ -2464,11 +3446,13 @@ function renderResult(crcl, cat, ab, isDialysis, weight, patientName = '') {
   // Route special drugs to dedicated renderers
   if (ab.special_dosing === 'teicoplanin') {
     document.getElementById('result-area').innerHTML = renderTeicoplanin(crcl, cat, ab, isDialysis, weight, patientName);
+    appendInteractionWarnings(ab);
     triggerResultAnimations(crcl);
     return;
   }
   if (ab.special_dosing === 'colistin') {
     document.getElementById('result-area').innerHTML = renderColistin(crcl, cat, ab, isDialysis, weight, patientName);
+    appendInteractionWarnings(ab);
     triggerResultAnimations(crcl);
     return;
   }
@@ -2587,6 +3571,7 @@ function renderResult(crcl, cat, ab, isDialysis, weight, patientName = '') {
   `;
 
   document.getElementById('result-area').innerHTML = html;
+  appendInteractionWarnings(ab);
   triggerResultAnimations(crcl);
 }
 
@@ -2600,6 +3585,8 @@ function suggestAlternative(altIds) {
   const altAb = AB.find(a => a.id === altId);
   if (!altAb) { alert('Không tìm thấy kháng sinh thay thế'); return; }
   selectedAB = altAb;
+  companionABIds = companionABIds.filter(x => x !== altAb.id);
+  renderCompanionChips();
   document.getElementById('antibiotic-input').value = altAb.name;
   document.getElementById('clear-btn').style.display = 'block';
   calculate();
@@ -2608,7 +3595,12 @@ function suggestAlternative(altIds) {
 // Auto-close suggestions on click outside
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.autocomplete-wrap')) {
-    document.getElementById('suggestions').style.display = 'none';
+    const s1 = document.getElementById('suggestions');
+    const s2 = document.getElementById('companion-suggestions');
+    const s3 = document.getElementById('comed-suggestions');
+    if (s1) s1.style.display = 'none';
+    if (s2) s2.style.display = 'none';
+    if (s3) s3.style.display = 'none';
   }
 });
 
@@ -2651,6 +3643,8 @@ document.addEventListener('click', function(e) {
 
 // Init
 initAntibioticGroupFilter();
+initCompanionAutocomplete();
+initCoMedAutocomplete();
 renderHistory();
 </script>
 <div class="toast-error" id="toast-error"></div>
