@@ -71,22 +71,51 @@
     max-height: 220px; overflow-y: auto;
     box-shadow: 0 4px 16px rgba(0,0,0,0.12);
   }
-  .suggestions .item { padding: 9px 12px; cursor: pointer; font-size: 0.88rem; display: flex; align-items: center; gap: 8px; }
-  .suggestions .item:hover, .suggestions .item.active { background: var(--primary-light); }
-  .suggestions .item .badge { font-size: 0.68rem; padding: 2px 6px; border-radius: 10px; background: #e8edf5; color: var(--muted); font-weight: 600; flex-shrink: 0; }
-
-  /* Disease pills */
-  .checkbox-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-  .checkbox-item {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 5px 13px; border-radius: 20px;
-    border: 1.5px solid var(--border); background: #f5f6fa;
-    cursor: pointer; font-size: 0.80rem; font-weight: 500;
-    color: var(--muted); transition: all 0.15s; user-select: none;
+  .suggestions .item {
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    text-align: left;
+    letter-spacing: 0;
+    word-spacing: 0;
+    line-height: 1.28;
   }
-  .checkbox-item:hover { border-color: var(--primary); color: var(--text); background: var(--primary-light); }
-  .checkbox-item.checked { border-color: var(--primary); background: var(--primary); color: #fff; font-weight: 700; }
-  .checkbox-item input[type=checkbox] { display: none; }
+  .suggestions .item:hover, .suggestions .item.active { background: var(--primary-light); }
+  .suggestions .item > div {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+    letter-spacing: 0;
+    word-spacing: 0;
+  }
+  .suggestions .item .drug-suggest-name,
+  .suggestions .item .drug-suggest-name * {
+    letter-spacing: 0 !important;
+    word-spacing: 0 !important;
+    text-align: left !important;
+    white-space: normal;
+  }
+  .suggestions .item .badge {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background: #e8edf5;
+    color: var(--muted);
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .suggestion-mark {
+    background:#ffe066;
+    border-radius:2px;
+    padding:0 1px;
+    letter-spacing:0 !important;
+    word-spacing:0 !important;
+  }
+
 
   .toggle-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.15s; margin-top: 6px; }
   .toggle-row:hover { border-color: var(--warning); background: #fef9f0; }
@@ -137,7 +166,6 @@
 
   .dose-label { font-weight: 600; color: var(--muted); font-size: 0.8rem; min-width: 135px; display: inline-block; }
   .dose-row { margin-bottom: 5px; font-size: 0.9rem; line-height: 1.5; }
-  .dose-compat { margin-top: 10px; padding-top: 8px; border-top: 1px solid #d0e8f7; font-size: 0.84rem; font-weight: 600; }
 
   .alt-btn {
     display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px;
@@ -339,6 +367,11 @@
     <div class="section-title">📋 Thông tin bệnh nhân</div>
 
     <div class="form-group">
+      <label>Tên bệnh nhân</label>
+      <input type="text" id="patient-name" placeholder="VD: Nguyễn Văn A" autocomplete="off">
+    </div>
+
+    <div class="form-group">
       <label>Creatinine huyết thanh <span class="unit">(µmol/L)</span></label>
       <input type="number" id="scr" placeholder="VD: 90" min="1" max="2000" step="1">
     </div>
@@ -371,43 +404,12 @@
         <button class="clear-btn" id="clear-btn" onclick="clearAntibiotic()">✕</button>
         <div class="suggestions" id="suggestions" style="display:none"></div>
       </div>
-    </div>
-
-    <div style="border-top:1px solid var(--border); margin: 16px 0 14px;"></div>
-    <div class="section-title">🩺 Bệnh lý & Mức độ</div>
-
-    <div class="form-group">
-      <label>Bệnh lý</label>
-      <div class="checkbox-grid" id="disease-grid">
-        <div class="checkbox-item" onclick="toggleDisease(this,'viem_phoi')">
-          <input type="checkbox" value="viem_phoi"> 🫁 Viêm phổi
-        </div>
-        <div class="checkbox-item" onclick="toggleDisease(this,'nhiem_trung_tieu_hoa')">
-          <input type="checkbox" value="nhiem_trung_tieu_hoa"> 🦠 NK tiêu hóa
-        </div>
-        <div class="checkbox-item" onclick="toggleDisease(this,'nhiem_trung_tktw')">
-          <input type="checkbox" value="nhiem_trung_tktw"> 🧠 NK thần kinh TW
-        </div>
-        <div class="checkbox-item" onclick="toggleDisease(this,'nhiem_trung_duong_tieu')">
-          <input type="checkbox" value="nhiem_trung_duong_tieu"> 💧 NK đường tiểu
-        </div>
-        <div class="checkbox-item" onclick="toggleDisease(this,'nhiem_trung_da_mo_mem')">
-          <input type="checkbox" value="nhiem_trung_da_mo_mem"> 🩹 NK da & mô mềm
-        </div>
-        <div class="checkbox-item" onclick="toggleDisease(this,'nhiem_trung_khac')">
-          <input type="checkbox" value="nhiem_trung_khac"> ➕ NK khác
-        </div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Mức độ</label>
-      <select id="severity">
-        <option value="nang" selected>⚠️ Nặng</option>
-        <option value="du_phong">🛡 Dự phòng</option>
-        <option value="trung_binh">🟡 Trung bình</option>
-        <option value="nguy_kich">🔴 Nguy kịch / Đa kháng</option>
+      <select id="antibiotic-group-filter" style="margin-top:8px">
+        <option value="">Tất cả nhóm kháng sinh/kháng nấm</option>
       </select>
+      <div style="font-size:0.74rem;color:var(--muted);margin-top:5px">
+        Có thể lọc theo nhóm: Penicillin, Cephalosporin, Carbapenem, Quinolone, Macrolide, Aminoglycoside, Kháng nấm...
+      </div>
     </div>
 
     <div class="form-group">
@@ -1462,7 +1464,186 @@ const AB = [
       'PNCT: D — tránh dùng nếu có thể; nguy cơ ototoxicity cho thai nhi'
     ],
     alt:['amikacin','gentamicin']
-  }
+  },
+{
+    id:'amoxicillin', name:'Amoxicillin', group:'Penicillin',
+    aliases:['amoxicillin','amox','amoxicilin','amoxycillin'],
+    route:'PO', forms:['250mg viên/gói','500mg viên/gói','875mg viên'],
+    dosing:[
+      {cmin:31,cmax:999, nang:{d:'500mg - 1g',f:'q8h hoặc 875mg q12h'}},
+      {cmin:10,cmax:30, nang:{d:'250 - 500mg',f:'q12h'}},
+      {cmin:0,cmax:9, nang:{d:'250 - 500mg',f:'q24h'}},
+    ],
+    dialysis:'HD: 250 - 500mg mỗi 24 giờ; dùng sau lọc máu nếu trùng ngày lọc',
+    prep:{sol:'Không áp dụng',vol:100,time:30,se:false,note_sol:'Đường uống – không cần pha truyền'},
+    notes:[
+      'Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.',
+      'Viên giải phóng kéo dài: không nên dùng khi CrCl < 30 ml/phút.'
+    ],
+    alt:['ampicillin_sulbactam','piperacillin_tazo']
+  },
+  {
+    id:'amphotericin_b_deoxycholate', name:'Amphotericin B deoxycholate', group:'Polyene (Antifungal)',
+    aliases:['amphotericin b','amphotericin deoxycholate','fungsone','ampho b'],
+    route:'IV', forms:['50mg/lọ'],
+    dosing:[
+      {cmin:0,cmax:999, nang:{d:'0,3 - 1mg/kg',f:'q24h tùy chỉ định'}}
+    ],
+    dialysis:'Không cần hiệu chỉnh liều trong IHD/CRRT',
+    prep:{sol:'Dextrose 5%',vol:500,time:240,se:false,note_sol:'Chỉ pha với Dextrose 5%, tránh NaCl'},
+    notes:[
+      'Bệnh nhân rối loạn chức năng thận do thuốc: cân nhắc giảm 50% tổng liều hằng ngày theo bảng nguồn.',
+      'Theo dõi creatinine, kali, magie và phản ứng truyền.'
+    ],
+    alt:['amphotericin_b_lipid_complex','voriconazole','caspofungin']
+  },
+  {
+    id:'amphotericin_b_lipid_complex', name:'Amphotericin B lipid complex', group:'Polyene (Antifungal)',
+    aliases:['amphotericin lipid','amphotericin b lipid complex','abelcet'],
+    route:'IV', forms:['100mg/20ml'],
+    dosing:[
+      {cmin:0,cmax:999, nang:{d:'3 - 5mg/kg',f:'q24h tùy chỉ định'}}
+    ],
+    dialysis:'Không cần hiệu chỉnh liều trong IHD/CRRT',
+    prep:{sol:'Dextrose 5%',vol:500,time:120,se:false,note_sol:'Pha loãng theo thông tin sản phẩm; tránh NaCl nếu chế phẩm yêu cầu'},
+    notes:[
+      'Không cần hiệu chỉnh liều trên suy gan và suy thận theo bảng nguồn.',
+      'Theo dõi độc tính thận và điện giải.'
+    ],
+    alt:['amphotericin_b_deoxycholate','voriconazole','caspofungin']
+  },
+  {
+    id:'cefaclor', name:'Cefaclor', group:'Cephalosporin thế hệ 2',
+    aliases:['cefaclor','ceclor'],
+    route:'PO', forms:['250mg viên/gói','500mg viên'],
+    dosing:[
+      {cmin:0,cmax:999, nang:{d:'250 - 500mg',f:'q8h; ESRD/IHD: dùng sau lọc theo chỉ định'}}
+    ],
+    dialysis:'ESRD/IHD: 250 - 500mg sau lọc máu; PD: 250 - 500mg q8h',
+    prep:{sol:'Không áp dụng',vol:100,time:30,se:false,note_sol:'Đường uống – không cần pha truyền'},
+    notes:['Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'],
+    alt:['cefuroxim','cefpodoxim','cefoxitin']
+  },
+  {
+    id:'cefoperazon', name:'Cefoperazon', group:'Cephalosporin thế hệ 3',
+    aliases:['cefoperazon','cefoperazone'],
+    route:'IV/IM', forms:['1g/lọ','2g/lọ'],
+    dosing:[
+      {cmin:18,cmax:999, nang:{d:'1 - 2g',f:'q12h'}},
+      {cmin:0,cmax:17, nang:{d:'Tối đa 4g/ngày',f:'chia q12h'}}
+    ],
+    dialysis:'Không cần hiệu chỉnh liều trong lọc máu theo bảng nguồn',
+    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
+    notes:[
+      'Tắc mật nặng: tối đa 2g/ngày; suy gan nặng kèm suy thận cần thận trọng.',
+      'Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'
+    ],
+    alt:['cefo_sulbactam','ceftriaxon','cefotaxim']
+  },
+  {
+    id:'cefoxitin', name:'Cefoxitin', group:'Cephalosporin thế hệ 2',
+    aliases:['cefoxitin','mefoxin'],
+    route:'IV', forms:['1g/lọ','2g/lọ'],
+    dosing:[
+      {cmin:30,cmax:50, nang:{d:'1 - 2g',f:'q6-12h'}},
+      {cmin:10,cmax:29, nang:{d:'1 - 2g',f:'q12-24h'}},
+      {cmin:5,cmax:9, nang:{d:'0,5 - 1g',f:'q12-24h'}},
+      {cmin:0,cmax:4, nang:{d:'0,5 - 1g',f:'q24-48h'}},
+      {cmin:51,cmax:999, nang:{d:'1 - 2g',f:'q6-8h'}}
+    ],
+    dialysis:'HD: liều tải 1 - 2g sau mỗi lần lọc; liều duy trì theo CrCl',
+    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
+    notes:['Suy thận: cân nhắc liều tải 1 - 2g trước khi dùng liều duy trì theo CrCl.'],
+    alt:['cefuroxim','cefaclor','cefpodoxim']
+  },
+  {
+    id:'cefpodoxim', name:'Cefpodoxim', group:'Cephalosporin thế hệ 2',
+    aliases:['cefpodoxim','cefpodoxime','vantin'],
+    route:'PO', forms:['100mg viên','200mg viên'],
+    dosing:[
+      {cmin:30,cmax:999, nang:{d:'100 - 400mg',f:'q12h tùy chỉ định'}},
+      {cmin:0,cmax:29, nang:{d:'Liều chỉ định',f:'q24h'}}
+    ],
+    dialysis:'HD: dùng 3 lần/tuần sau lọc máu',
+    prep:{sol:'Không áp dụng',vol:100,time:30,se:false,note_sol:'Đường uống – không cần pha truyền'},
+    notes:['Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'],
+    alt:['cefuroxim','cefaclor','cefoxitin']
+  },
+  {
+    id:'clarithromycin', name:'Clarithromycin', group:'Macrolide',
+    aliases:['clarithromycin','clarithro','klacid'],
+    route:'PO/IV', forms:['250mg viên','500mg viên','500mg/lọ IV'],
+    dosing:[
+      {cmin:30,cmax:999, nang:{d:'250 - 500mg',f:'q12h'}},
+      {cmin:0,cmax:29, nang:{d:'Giảm 50% liều',f:'q12-24h tùy chỉ định'}}
+    ],
+    dialysis:'Không cần liều bổ sung sau HD; cân nhắc giảm liều khi suy thận nặng',
+    prep:{sol:'NaCl 0,9%',vol:250,time:60,se:false},
+    notes:[
+      'Theo dõi QTc và tương tác thuốc qua CYP3A4.',
+      'Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'
+    ],
+    alt:['azithromycin','erythromycin','spiramycin']
+  },
+  {
+    id:'doxycyclin', name:'Doxycyclin', group:'Tetracycline',
+    aliases:['doxycyclin','doxycycline','doxy'],
+    route:'PO/IV', forms:['100mg viên','100mg/lọ'],
+    dosing:[
+      {cmin:0,cmax:999, nang:{d:'100mg',f:'q12h'}}
+    ],
+    dialysis:'Không cần hiệu chỉnh liều trong IHD/CRRT',
+    prep:{sol:'NaCl 0,9% hoặc Dextrose 5%',vol:100,time:60,se:false},
+    notes:[
+      'Không cần hiệu chỉnh liều trên suy thận theo bảng nguồn.',
+      'Tránh dùng cho phụ nữ có thai và trẻ nhỏ nếu không có chỉ định phù hợp.'
+    ],
+    alt:['tetracyclin','tigecyclin']
+  },
+  {
+    id:'erythromycin', name:'Erythromycin', group:'Macrolide',
+    aliases:['erythromycin','erythro'],
+    route:'PO/IV', forms:['250mg viên','500mg viên/lọ'],
+    dosing:[
+      {cmin:0,cmax:999, nang:{d:'250 - 500mg',f:'q6h hoặc theo chỉ định'}}
+    ],
+    dialysis:'Không cần hiệu chỉnh liều theo bảng nguồn',
+    prep:{sol:'NaCl 0,9%',vol:250,time:60,se:false},
+    notes:[
+      'Theo dõi QTc, độc tính tiêu hóa và tương tác thuốc.',
+      'Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'
+    ],
+    alt:['azithromycin','clarithromycin','spiramycin']
+  },
+  {
+    id:'spiramycin', name:'Spiramycin', group:'Macrolide',
+    aliases:['spiramycin','rovamycin'],
+    route:'PO', forms:['1,5 MUI viên','3 MUI viên'],
+    dosing:[
+      {cmin:0,cmax:999, nang:{d:'1,5 - 3 MUI',f:'q8-12h tùy chỉ định'}}
+    ],
+    dialysis:'Không cần hiệu chỉnh liều theo bảng nguồn',
+    prep:{sol:'Không áp dụng',vol:100,time:30,se:false,note_sol:'Đường uống – không cần pha truyền'},
+    notes:['Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'],
+    alt:['azithromycin','clarithromycin','erythromycin']
+  },
+  {
+    id:'tetracyclin', name:'Tetracyclin', group:'Tetracycline',
+    aliases:['tetracyclin','tetracycline'],
+    route:'PO', forms:['250mg viên','500mg viên'],
+    dosing:[
+      {cmin:50,cmax:999, nang:{d:'250 - 500mg',f:'q6h'}},
+      {cmin:10,cmax:49, nang:{d:'250 - 500mg',f:'q12-24h'}},
+      {cmin:0,cmax:9, nang:{d:'Tránh dùng hoặc kéo dài khoảng cách liều',f:'theo dõi độc tính'}}
+    ],
+    dialysis:'Không ưu tiên dùng trong suy thận nặng; tham khảo dược sĩ lâm sàng',
+    prep:{sol:'Không áp dụng',vol:100,time:30,se:false,note_sol:'Đường uống – không cần pha truyền'},
+    notes:[
+      'Tetracyclin cổ điển có nguy cơ tích lũy khi suy thận; doxycyclin thường phù hợp hơn.',
+      'Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'
+    ],
+    alt:['doxycyclin','tigecyclin']
+  },
 ];
 
 // ─── UTILITY ──────────────────────────────────────────────────────────────────
@@ -1483,6 +1664,20 @@ function toRoman(n) {
   return r;
 }
 function roundTo5(n) { return Math.round(n / 5) * 5 || 5; }
+
+function getPatientName() {
+  const el = document.getElementById('patient-name');
+  return el ? el.value.trim() : '';
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 // Parse LD; MD from dose string (handles ; , and \n as separator)
 function parseLD_MD(doseStr) {
@@ -1575,10 +1770,12 @@ function getCrClCategory(v) {
   return {label:'<0?', cls:'danger', stage:'Kiểm tra lại'};
 }
 
-function getDosing(ab, crcl, severity) {
+function getDosing(ab, crcl) {
   const rows = ab.dosing.filter(r => crcl >= r.cmin && crcl <= r.cmax);
   const row = rows[rows.length - 1] || ab.dosing[ab.dosing.length - 1];
-  const d = row[severity] || row['nang'] || row['trung_binh'];
+  // Mặc định ưu tiên phác đồ "nặng" nếu có,
+  // sau đó dùng "trung bình" hoặc dòng dữ liệu đầu tiên còn khả dụng.
+  const d = row['nang'] || row['trung_binh'] || row['nguy_kich'] || row['du_phong'] || null;
   return { row, d };
 }
 
@@ -1620,39 +1817,6 @@ function formatFrequency(f) {
   return f
     .replace(/\bq(\d+)-(\d+)h\b/gi, 'mỗi $1–$2h')
     .replace(/\bq(\d+)h\b/gi, 'mỗi $1h');
-}
-
-const DISEASE_LABELS = {
-  viem_phoi: 'viêm phổi',
-  nhiem_trung_tieu_hoa: 'NK tiêu hóa',
-  nhiem_trung_tktw: 'NK thần kinh TW',
-  nhiem_trung_duong_tieu: 'NK đường tiểu',
-  nhiem_trung_da_mo_mem: 'NK da & mô mềm',
-  nhiem_trung_khac: 'NK khác'
-};
-
-function getDiseaseCompatibility(ab, diseases) {
-  if (!diseases || !diseases.length) return '';
-  const warnings = [];
-  if (diseases.includes('viem_phoi')) {
-    if (['metronidazol','clindamycin'].includes(ab.id))
-      warnings.push('Không ưu tiên trong viêm phổi – phổ kỵ khí, không bao phủ tác nhân CAP/HAP thường gặp');
-    if (ab.id === 'daptomycin')
-      warnings.push('CHỐNG CHỈ ĐỊNH trong viêm phổi – bị bất hoạt bởi surfactant phổi');
-  }
-  if (diseases.includes('nhiem_trung_tktw')) {
-    const goodCNS = ['ceftriaxon','cefotaxim','meropenem','vancomycin','ampicillin_sulbactam'];
-    if (!goodCNS.includes(ab.id))
-      warnings.push('Khả năng thấm qua hàng rào máu não hạn chế – cần xác nhận trước khi dùng cho NK thần kinh TW');
-  }
-  if (diseases.includes('nhiem_trung_da_mo_mem')) {
-    if (ab.id === 'metronidazol')
-      warnings.push('Metronidazol không phải lựa chọn đầu tay cho NK da & mô mềm – cân nhắc kết hợp hoặc thay thế');
-  }
-  const diseaseStr = diseases.map(d => DISEASE_LABELS[d] || d).join(', ');
-  if (!warnings.length)
-    return `<div class="dose-compat" style="color:var(--accent)">✓ Phù hợp với bệnh lý: ${diseaseStr}</div>`;
-  return warnings.map(w => `<div class="dose-compat" style="color:var(--danger)">– ${w}</div>`).join('');
 }
 
 function formatPrepStructured(ab, d) {
@@ -1700,65 +1864,81 @@ function formatPrepStructured(ab, d) {
 
 // ─── HISTORY ──────────────────────────────────────────────────────────────────
 const HIST_KEY = 'ab_calc_hist_v2';
+
 function saveHistory(entry) {
   try {
     let h = JSON.parse(localStorage.getItem(HIST_KEY) || '[]');
-    // Dedup: remove existing entry for same drug, then push to top
-    h = h.filter(x => x.ab_id !== entry.ab_id);
+
+    // Lưu theo từng lượt tra cứu; chỉ gộp trùng khi cùng bệnh nhân + cùng kháng sinh.
+    const patientKey = (entry.patient_name || '').trim().toLowerCase();
+    h = h.filter(x => !(
+      x.ab_id === entry.ab_id &&
+      ((x.patient_name || '').trim().toLowerCase() === patientKey)
+    ));
+
     h.unshift({ ...entry, t: Date.now() });
-    localStorage.setItem(HIST_KEY, JSON.stringify(h.slice(0, 5)));
+    localStorage.setItem(HIST_KEY, JSON.stringify(h.slice(0, 10)));
     renderHistory();
-  } catch(e) {}
+  } catch(e) {
+    console.warn('Không thể lưu lịch sử tra cứu:', e);
+  }
 }
+
 function clearHistory() {
   try {
     localStorage.removeItem(HIST_KEY);
     renderHistory();
-    // If no results showing, make history-section visible again
     if (document.getElementById('result-area').style.display === 'none') {
       const hs = document.getElementById('history-section');
       if (hs) hs.style.display = 'block';
     }
   } catch(e) {}
 }
+
 function renderHistory() {
   const box = document.getElementById('history-panel');
   if (!box) return;
+
   let hist = [];
   try { hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch(e) {}
+
   if (!hist.length) {
     box.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:6px">Chưa có lịch sử</div>';
     return;
   }
-  box.innerHTML = hist.slice(0, 5).map(h => {
+
+  box.innerHTML = hist.slice(0, 10).map((h, idx) => {
     const d = new Date(h.t);
     const ts = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
-    return `<div class="hist-item" onclick="loadHist('${h.ab_id}')">
-      <span class="hist-name">${h.ab_name}</span>
-      <span class="hist-meta">CrCl ${h.crcl} · ${ts}</span>
+    const patient = h.patient_name ? escapeHtml(h.patient_name) : 'Không nhập tên BN';
+    return `<div class="hist-item" onclick="loadHist(${idx})">
+      <span class="hist-name">${patient}</span>
+      <span class="hist-meta">${escapeHtml(h.ab_name || '')} · CrCl ${escapeHtml(h.crcl)} · ${ts}</span>
     </div>`;
   }).join('');
 }
-function loadHist(abId) {
+
+function loadHist(index) {
   let hist = [];
   try { hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch(e) {}
-  const entry = hist.find(h => h.ab_id === abId);
+  const entry = hist[index];
   if (!entry) return;
-  // If we have stored render_data, replay result directly without filling form
-  if (entry.render_data) {
-    const rd = entry.render_data;
-    const ab = AB.find(a => a.id === rd.ab_id);
-    if (!ab) return;
-    const cat = rd.cat || getCrClCategory(rd.crcl);
-    renderResult(rd.crcl, cat, ab, rd.severity, rd.diseases || [], rd.isDialysis || false, rd.weight);
-    return;
-  }
-  // Fallback for old entries without render_data
-  const ab = AB.find(a => a.id === abId);
+
+  const ab = AB.find(a => a.id === entry.ab_id);
   if (!ab) return;
+
   selectedAB = ab;
   document.getElementById('antibiotic-input').value = ab.name;
   document.getElementById('clear-btn').style.display = 'block';
+
+  const patientInput = document.getElementById('patient-name');
+  if (patientInput) patientInput.value = entry.patient_name || '';
+
+  if (entry.render_data) {
+    const rd = entry.render_data;
+    const cat = rd.cat || getCrClCategory(rd.crcl);
+    renderResult(rd.crcl, cat, ab, rd.isDialysis || false, rd.weight, entry.patient_name || rd.patient_name || '');
+  }
 }
 
 // ─── FUZZY SEARCH ─────────────────────────────────────────────────────────────
@@ -1772,28 +1952,46 @@ function strSim(a, b) {
   for (let i = 0; i < b.length - 1; i++) if (setA.has(b.slice(i, i+2))) hits++;
   return hits / Math.max(setA.size, b.length - 1, 1);
 }
-function searchAB(val) {
-  let matches = AB.filter(a =>
-    a.name.toLowerCase().includes(val) ||
-    a.aliases.some(al => al.includes(val)) ||
-    a.group.toLowerCase().includes(val)
+function getSelectedAntibioticGroup() {
+  const sel = document.getElementById('antibiotic-group-filter');
+  return sel ? sel.value : '';
+}
+
+function sortABByGroup(list) {
+  return list.slice().sort((a, b) =>
+    (a.group || '').localeCompare(b.group || '', 'vi') ||
+    (a.name || '').localeCompare(b.name || '', 'vi')
   );
-  if (!matches.length) {
-    // Fuzzy fallback — always return something
-    matches = AB.map(a => ({
+}
+
+function searchAB(val = '') {
+  val = (val || '').toLowerCase().trim();
+  const groupFilter = getSelectedAntibioticGroup();
+
+  let base = AB.filter(a => !groupFilter || a.group === groupFilter);
+
+  let matches = !val ? base : base.filter(a =>
+    a.name.toLowerCase().includes(val) ||
+    (a.aliases || []).some(al => al.toLowerCase().includes(val)) ||
+    (a.group || '').toLowerCase().includes(val)
+  );
+
+  if (val && !matches.length) {
+    // Fuzzy fallback — always return something inside selected group if any
+    matches = base.map(a => ({
       a,
-      score: Math.max(strSim(a.name, val), ...a.aliases.map(al => strSim(al, val)))
-    })).filter(x => x.score > 0.15).sort((x,y) => y.score - x.score).slice(0, 6).map(x => x.a);
+      score: Math.max(
+        strSim(a.name, val),
+        ...((a.aliases || []).map(al => strSim(al, val))),
+        strSim(a.group || '', val)
+      )
+    })).filter(x => x.score > 0.15).sort((x,y) => y.score - x.score).slice(0, 12).map(x => x.a);
   }
-  return matches.slice(0, 12);
+
+  return sortABByGroup(matches).slice(0, val ? 30 : 80);
 }
 
 // ─── UI ───────────────────────────────────────────────────────────────────────
-function toggleDisease(el, val) {
-  el.classList.toggle('checked');
-  el.querySelector('input').checked = !el.querySelector('input').checked;
-}
-
 function toggleDialysis() {
   dialysis = !dialysis;
   const toggle = document.getElementById('dialysis-toggle');
@@ -1811,23 +2009,63 @@ function clearAntibiotic() {
 
 // Autocomplete input
 const abInput = document.getElementById('antibiotic-input');
+const abGroupFilter = document.getElementById('antibiotic-group-filter');
+
+function initAntibioticGroupFilter() {
+  if (!abGroupFilter) return;
+  const groups = [...new Set(AB.map(a => a.group).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'vi'));
+  abGroupFilter.innerHTML = '<option value="">Tất cả nhóm kháng sinh/kháng nấm</option>' +
+    groups.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+}
+
+function renderAntibioticSuggestions(val = '') {
+  const box = document.getElementById('suggestions');
+  if (!box) return;
+  const matches = searchAB(val);
+
+  if (!matches.length) {
+    box.style.display = 'none';
+    return;
+  }
+
+  let html = '';
+  let lastGroup = '';
+  matches.forEach((a, i) => {
+    if (a.group !== lastGroup) {
+      lastGroup = a.group;
+      html += `<div style="padding:7px 12px 4px;background:#f3f6fb;color:var(--primary);font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;border-top:1px solid var(--border)">${escapeHtml(lastGroup)}</div>`;
+    }
+    html += `<div class="item${i===0?' active':''}" data-id="${a.id}" onmousedown="selectAB('${a.id}')">
+      <div>
+        <div class="drug-suggest-name" style="font-weight:600">${highlight(escapeHtml(a.name), val)}</div>
+        <div style="font-size:0.75rem;color:#888">${escapeHtml(a.route || '')}</div>
+      </div>
+      <span class="badge">${escapeHtml((a.group || '').split(' ')[0])}</span>
+    </div>`;
+  });
+
+  box.innerHTML = html;
+  box.style.display = 'block';
+}
+
 abInput.addEventListener('input', function() {
   const val = this.value.toLowerCase().trim();
-  const box = document.getElementById('suggestions');
-  if (!val) { box.style.display = 'none'; return; }
-  const matches = searchAB(val);
-  if (!matches.length) { box.style.display = 'none'; return; }
-  box.innerHTML = matches.map((a,i) =>
-    `<div class="item${i===0?' active':''}" data-id="${a.id}" onmousedown="selectAB('${a.id}')">
-      <div>
-        <div style="font-weight:600">${highlight(a.name, val)}</div>
-        <div style="font-size:0.75rem;color:#888">${a.route}</div>
-      </div>
-      <span class="badge">${a.group.split(' ')[0]}</span>
-    </div>`
-  ).join('');
-  box.style.display = 'block';
+  renderAntibioticSuggestions(val);
 });
+
+abInput.addEventListener('focus', function() {
+  renderAntibioticSuggestions(this.value.toLowerCase().trim());
+});
+
+if (abGroupFilter) {
+  abGroupFilter.addEventListener('change', function() {
+    selectedAB = null;
+    document.getElementById('antibiotic-input').value = '';
+    document.getElementById('clear-btn').style.display = 'none';
+    renderAntibioticSuggestions('');
+  });
+}
 
 // Enter & arrow keys in autocomplete
 abInput.addEventListener('keydown', function(e) {
@@ -1857,8 +2095,13 @@ abInput.addEventListener('blur', function() {
 });
 
 function highlight(str, q) {
-  const r = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
-  return str.replace(r, '<mark style="background:#ffe066;border-radius:2px;padding:0 1px">$1</mark>');
+  // Không highlight khi ô tìm kiếm rỗng để tránh lỗi chèn <mark> giữa từng ký tự
+  q = (q || '').trim();
+  if (!q) return str;
+
+  const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const r = new RegExp(`(${safeQ})`, 'gi');
+  return str.replace(r, '<mark class="suggestion-mark">$1</mark>');
 }
 
 function selectAB(id) {
@@ -1870,7 +2113,7 @@ function selectAB(id) {
 }
 
 // ─── ENTER NAVIGATION ─────────────────────────────────────────────────────────
-const NAV_ORDER = ['scr','age','weight','antibiotic-input','severity'];
+const NAV_ORDER = ['patient-name','scr','age','weight','antibiotic-input'];
 function focusNext(currentId) {
   const idx = NAV_ORDER.indexOf(currentId);
   if (idx >= 0 && idx < NAV_ORDER.length - 1) {
@@ -1885,16 +2128,10 @@ NAV_ORDER.forEach(id => {
     if (e.key === 'Enter') { e.preventDefault(); focusNext(id); }
   });
 });
-// Disease checkboxes: Enter toggles focused item
-document.querySelectorAll('#disease-grid .checkbox-item input').forEach(cb => {
-  cb.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') { e.preventDefault(); toggleDisease(this.closest('.checkbox-item'), this.value); }
-  });
-});
 
 // ─── SPECIAL DRUG RENDERERS ───────────────────────────────────────────────────
-function renderTeicoplanin(crcl, cat, ab, isDialysis, weight, diseases) {
-  const diseaseCompat = getDiseaseCompatibility(ab, diseases);
+function renderTeicoplanin(crcl, cat, ab, isDialysis, weight, patientName = '') {
+  const safePatientName = patientName ? escapeHtml(patientName) : 'Không nhập tên bệnh nhân';
   const prepData = formatPrepStructured(ab, {d:'(theo chỉ định)',f:'q12h'});
 
   // LD rows by indication
@@ -1943,9 +2180,14 @@ function renderTeicoplanin(crcl, cat, ab, isDialysis, weight, diseases) {
         <div class="stat-sub">${cat.stage} • Cockcroft-Gault</div>
       </div>
       <div class="stat-card">
+        <div class="stat-label">👤 Bệnh nhân</div>
+        <div class="stat-value" style="font-size:1rem;padding-top:4px">${safePatientName}</div>
+        <div class="stat-sub">Cân nặng: <strong>${weight}kg</strong></div>
+      </div>
+      <div class="stat-card">
         <div class="stat-label">📊 Phân loại</div>
         <div class="stat-value" style="font-size:1rem;padding-top:4px">${cat.label}</div>
-        <div class="stat-sub">Cân nặng: <strong>${weight}kg</strong></div>
+        <div class="stat-sub">Cockcroft-Gault</div>
       </div>
     </div>
     <div class="result-card">
@@ -1977,7 +2219,6 @@ function renderTeicoplanin(crcl, cat, ab, isDialysis, weight, diseases) {
       ${ab.notes?.length ? `<div class="notes-box"><div class="notes-header">Lưu ý quan trọng</div>
         ${ab.notes.map(n => `<div class="note-item">${n}</div>`).join('')}
       </div>` : ''}
-      ${diseaseCompat}
       <button class="alt-btn" onclick="suggestAlternative(${JSON.stringify(ab.alt||[]).replace(/"/g,"'")})">
         Đề xuất kháng sinh thay thế
         <span style="font-size:0.75rem;font-weight:400;opacity:0.8">(Cùng nhóm ${ab.group})</span>
@@ -1985,7 +2226,8 @@ function renderTeicoplanin(crcl, cat, ab, isDialysis, weight, diseases) {
     </div>`;
 }
 
-function renderColistin(crcl, cat, ab, isDialysis, weight) {
+function renderColistin(crcl, cat, ab, isDialysis, weight, patientName = '') {
+  const safePatientName = patientName ? escapeHtml(patientName) : 'Không nhập tên bệnh nhân';
   // LD: 4mg CBA/kg IBW, max 300mg = 9 MIU
   const ld = ab.ld_cba;
   const ldRaw = Math.round(ld.mgkg * weight);
@@ -2028,9 +2270,14 @@ function renderColistin(crcl, cat, ab, isDialysis, weight) {
         <div class="stat-sub">${cat.stage} • Cockcroft-Gault</div>
       </div>
       <div class="stat-card">
+        <div class="stat-label">👤 Bệnh nhân</div>
+        <div class="stat-value" style="font-size:1rem;padding-top:4px">${safePatientName}</div>
+        <div class="stat-sub">Cân nặng: <strong>${weight}kg</strong></div>
+      </div>
+      <div class="stat-card">
         <div class="stat-label">📊 Phân loại</div>
         <div class="stat-value" style="font-size:1rem;padding-top:4px">${cat.label}</div>
-        <div class="stat-sub">Cân nặng: <strong>${weight}kg</strong></div>
+        <div class="stat-sub">Cockcroft-Gault</div>
       </div>
     </div>
     <div class="result-card">
@@ -2074,11 +2321,11 @@ function renderColistin(crcl, cat, ab, isDialysis, weight) {
 
 // ─── CALCULATE ────────────────────────────────────────────────────────────────
 function calculate() {
+  const patientName = getPatientName();
   const scr = parseFloat(document.getElementById('scr').value);
   const age = parseFloat(document.getElementById('age').value);
   const weight = parseFloat(document.getElementById('weight').value);
   const gender = document.querySelector('input[name=gender]:checked').value;
-  const severity = document.getElementById('severity').value;
 
   if (isNaN(scr) || scr <= 0) return showError('Vui lòng nhập creatinine hợp lệ');
   if (isNaN(age) || age <= 0 || age > 120) return showError('Vui lòng nhập tuổi hợp lệ');
@@ -2088,16 +2335,23 @@ function calculate() {
   currentWeight = weight;
   const crcl = calcCrCl(scr, age, weight, gender);
   const cat = getCrClCategory(crcl);
-  const diseases = [...document.querySelectorAll('#disease-grid input:checked')].map(el => el.value);
 
   saveHistory({
+    patient_name: patientName,
     ab_name: selectedAB.name,
     ab_id: selectedAB.id,
     crcl,
-    severity,
-    render_data: { ab_id: selectedAB.id, crcl, cat, severity, diseases, isDialysis: dialysis, weight }
+    render_data: {
+      patient_name: patientName,
+      ab_id: selectedAB.id,
+      crcl,
+      cat,
+      isDialysis: dialysis,
+      weight
+    }
   });
-  renderResult(crcl, cat, selectedAB, severity, diseases, dialysis, weight);
+
+  renderResult(crcl, cat, selectedAB, dialysis, weight, patientName);
 }
 
 function showError(msg) {
@@ -2107,25 +2361,29 @@ function showError(msg) {
 
 // ─── RESET ────────────────────────────────────────────────────────────────────
 function resetAll() {
+  const patientInput = document.getElementById('patient-name');
+  if (patientInput) patientInput.value = '';
+
   document.getElementById('scr').value = '';
   document.getElementById('age').value = '';
   document.getElementById('weight').value = '';
   document.querySelector('input[name=gender][value=male]').checked = true;
+
   clearAntibiotic();
-  document.querySelectorAll('#disease-grid .checkbox-item').forEach(el => {
-    el.classList.remove('checked');
-    el.querySelector('input').checked = false;
-  });
-  document.getElementById('severity').value = 'nang';
+
   if (dialysis) toggleDialysis();
+
   document.getElementById('result-area').style.display = 'none';
   document.getElementById('result-area').innerHTML = '';
   document.getElementById('empty-state').style.display = 'flex';
+
   const histSec = document.getElementById('history-section');
   if (histSec) histSec.style.display = 'block';
+
   selectedAB = null;
   currentAltIndex = 0;
 }
+
 document.addEventListener('keydown', function(e) {
   if (e.key === ' ' && !e.target.matches('input,textarea,select,button')) {
     e.preventDefault();
@@ -2197,7 +2455,7 @@ function triggerResultAnimations(crcl) {
   });
 }
 
-function renderResult(crcl, cat, ab, severity, diseases, isDialysis, weight) {
+function renderResult(crcl, cat, ab, isDialysis, weight, patientName = '') {
   document.getElementById('empty-state').style.display = 'none';
   document.getElementById('result-area').style.display = 'block';
   const histSec = document.getElementById('history-section');
@@ -2205,21 +2463,20 @@ function renderResult(crcl, cat, ab, severity, diseases, isDialysis, weight) {
 
   // Route special drugs to dedicated renderers
   if (ab.special_dosing === 'teicoplanin') {
-    document.getElementById('result-area').innerHTML = renderTeicoplanin(crcl, cat, ab, isDialysis, weight, diseases);
+    document.getElementById('result-area').innerHTML = renderTeicoplanin(crcl, cat, ab, isDialysis, weight, patientName);
     triggerResultAnimations(crcl);
     return;
   }
   if (ab.special_dosing === 'colistin') {
-    document.getElementById('result-area').innerHTML = renderColistin(crcl, cat, ab, isDialysis, weight);
+    document.getElementById('result-area').innerHTML = renderColistin(crcl, cat, ab, isDialysis, weight, patientName);
     triggerResultAnimations(crcl);
     return;
   }
 
-  const { row, d } = getDosing(ab, crcl, severity);
+  const { row, d } = getDosing(ab, crcl);
   const dialysisLine = ab.dialysis;
   const prepData = d && !isDialysis ? formatPrepStructured(ab, d) : null;
-  const diseaseCompat = d && !isDialysis ? getDiseaseCompatibility(ab, diseases) : '';
-  const sevLabels = { du_phong:'Dự phòng', trung_binh:'Trung bình', nang:'Nặng', nguy_kich:'Nguy kịch' };
+  const safePatientName = patientName ? escapeHtml(patientName) : 'Không nhập tên bệnh nhân';
 
   // LD/MD parsing + dual col
   const ldmd = d ? parseLD_MD(d.d) : null;
@@ -2269,9 +2526,14 @@ function renderResult(crcl, cat, ab, severity, diseases, isDialysis, weight) {
         <div class="stat-sub">${cat.stage} • Cockcroft-Gault</div>
       </div>
       <div class="stat-card">
+        <div class="stat-label">👤 Bệnh nhân</div>
+        <div class="stat-value" style="font-size:1rem;padding-top:4px">${safePatientName}</div>
+        <div class="stat-sub">Cân nặng: <strong>${weight}kg</strong></div>
+      </div>
+      <div class="stat-card">
         <div class="stat-label">📊 Phân loại</div>
         <div class="stat-value" style="font-size:1rem;padding-top:4px">${cat.label}</div>
-        <div class="stat-sub">Mức độ: <strong>${sevLabels[severity]}</strong> • ${weight}kg</div>
+        <div class="stat-sub">Cockcroft-Gault</div>
       </div>
     </div>
 
@@ -2295,7 +2557,6 @@ function renderResult(crcl, cat, ab, severity, diseases, isDialysis, weight) {
           <div class="dose-row"><span class="dose-label">Đường dùng:</span> ${ab.route}${d.ext ? ` – ${d.ext}` : ''}</div>
           ${d.note_dose ? `<div class="dose-row" style="color:var(--warning);margin-top:5px">📌 ${d.note_dose}</div>` : ''}
           ${d.po ? `<div class="dose-row"><span class="dose-label">Uống (PO):</span> ${d.po}</div>` : ''}
-          ${diseaseCompat}
           ${critHtml}
         </div>
       ` : `<div class="error-msg">Không có dữ liệu liều cho mức lọc cầu thận này – tham khảo dược sĩ</div>`}
@@ -2315,13 +2576,6 @@ function renderResult(crcl, cat, ab, severity, diseases, isDialysis, weight) {
         <div class="notes-box">
           <div class="notes-header">Lưu ý quan trọng</div>
           ${ab.notes.map(n => `<div class="note-item">${n}</div>`).join('')}
-        </div>
-      ` : ''}
-
-      ${diseases.includes('nhiem_trung_tktw') ? `
-        <div style="background:#fff3e0;border:1.5px solid #ff9800;border-radius:10px;padding:12px 14px;margin-bottom:14px">
-          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#e65100;margin-bottom:6px">NK Thần kinh TW – Lưu ý đặc biệt</div>
-          <div style="font-size:0.85rem;color:#bf360c;font-weight:500">Chỉ dùng kháng sinh thấm qua hàng rào máu não: ceftriaxon 2g q12h, cefotaxim 2g q4-6h, meropenem 2g q8h, ampicillin 2g q4h, vancomycin 30–45mg/kg/ngày ± rifampin</div>
         </div>
       ` : ''}
 
@@ -2396,6 +2650,7 @@ document.addEventListener('click', function(e) {
 })();
 
 // Init
+initAntibioticGroupFilter();
 renderHistory();
 </script>
 <div class="toast-error" id="toast-error"></div>
