@@ -472,7 +472,7 @@
 <div class="app-header">
   <div class="icon">💊</div>
   <div style="flex:1">
-    <h1>TÍNH LIỀU KHÁNG SINH CHO BỆNH NHÂN SUY THẬN <span style="font-size:0.82rem;font-weight:500;opacity:0.85">(Ver.06.26)</span></h1>
+    <h1>TÍNH LIỀU KHÁNG SINH CHO BỆNH NHÂN SUY THẬN <span style="font-size:0.82rem;font-weight:500;opacity:0.85">(Ver.06.29)</span></h1>
     <p>Được phát triển bởi <strong>Khoa Dược</strong> &nbsp;·&nbsp; <a href="https://www.facebook.com/KhoaDuoc.VPMEDTanHung" target="_blank" rel="noopener" style="color:#ffe066;text-decoration:underline;font-weight:600">Liên hệ tác giả</a></p>
   </div>
   <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0">
@@ -524,12 +524,7 @@
         <button class="clear-btn" id="clear-btn" onclick="clearAntibiotic()">✕</button>
         <div class="suggestions" id="suggestions" style="display:none"></div>
       </div>
-      <select id="antibiotic-group-filter" style="margin-top:8px">
-        <option value="">Tất cả nhóm kháng sinh/kháng nấm</option>
-      </select>
-      <div style="font-size:0.74rem;color:var(--muted);margin-top:5px">
-        Có thể lọc theo nhóm: Penicillin, Cephalosporin, Carbapenem, Quinolone, Macrolide, Aminoglycoside, Kháng nấm...
-      </div>
+      <div style="font-size:0.74rem;color:var(--muted);margin-top:5px">Danh mục hiển thị từng thuốc/biệt dược riêng biệt trong danh mục nội trú. Không gộp biệt dược cùng hoạt chất; liều tính theo thuốc được chọn.</div>
 
       <div class="interaction-panel">
         <label>Kháng sinh/kháng nấm phối hợp hoặc đang dùng kèm</label>
@@ -587,1207 +582,2948 @@
 
 <script>
 // ─── ANTIBIOTIC DATABASE ───────────────────────────────────────────────────
+// Danh mục tách theo từng thuốc/biệt dược nội trú; KHÔNG gộp biệt dược cùng hoạt chất.
+// Không dùng bộ lọc nhóm; mỗi dòng là một thuốc riêng trong danh mục nội trú.
 const AB = [
   {
-    id:'meropenem', name:'Meropenem', group:'Carbapenem',
-    aliases:['mero','meronem','meropenem'],
-    route:'IV', forms:['500mg/lọ','1g/lọ'],
-    groups_alt:['carbapenem'],
-    dosing:[
-      {cmin:50,cmax:999,
-        du_phong:null,
-        trung_binh:{d:'500mg',f:'q8h'},
-        nang:{d:'1g',f:'q8h'},
-        nguy_kich:{d:'LD 2g (30ph đầu); MD 2g',f:'q8h',ext:'MD truyền kéo dài 3h'}},
-      {cmin:26,cmax:49,
-        trung_binh:{d:'500mg',f:'q12h'},
-        nang:{d:'1g',f:'q12h'},
-        nguy_kich:{d:'LD 2g (30ph đầu); MD 2g',f:'q12h',ext:'MD truyền kéo dài 3h'}},
-      {cmin:10,cmax:25,
-        trung_binh:{d:'250mg',f:'q12h'},
-        nang:{d:'500mg',f:'q12h'},
-        nguy_kich:{d:'1g',f:'q12h'}},
-      {cmin:0,cmax:9,
-        trung_binh:{d:'250mg',f:'q24h'},
-        nang:{d:'500mg',f:'q24h'},
-        nguy_kich:{d:'1g',f:'q24h'}},
+    "id": "axuka",
+    "name": "Axuka",
+    "active": "Amoxicillin + acid clavulanic",
+    "group": "Penicillin + ức chế beta-lactamase",
+    "aliases": [
+      "axuka",
+      "amoxicillin + acid clavulanic"
     ],
-    dialysis:'1g q24h (CRRT); Sau HD: 500mg thêm sau mỗi lần thẩm tách',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Truyền kéo dài 3h tối ưu PK/PD – khuyến khích với liều ≥2g q8h cho vi khuẩn kém nhạy',
-      'Theo dõi chức năng thận mỗi 48-72h; nguy cơ co giật khi liều >2g q6h',
-      'Không cần hiệu chỉnh liều khi suy gan'
+    "route": "IV",
+    "forms": [
+      "1000mg + 200mg lọ"
     ],
-    alt:['imipenem','ertapenem']
-  },
-  {
-    id:'imipenem', name:'Imipenem/Cilastatin', group:'Carbapenem',
-    aliases:['imipenem','tienam','imipenem cilastatin','primaxin'],
-    route:'IV', forms:['500mg/lọ','1g/lọ'],
-    dosing:[
-      {cmin:60,cmax:999,
-        trung_binh:{d:'500mg',f:'q6h'},
-        nang:{d:'1g',f:'q8h'},
-        nguy_kich:{d:'1g',f:'q6h'}},
-      {cmin:30,cmax:59,
-        trung_binh:{d:'250mg',f:'q6h'},
-        nang:{d:'500mg',f:'q8h'},
-        nguy_kich:{d:'500mg',f:'q6h'}},
-      {cmin:15,cmax:29,
-        trung_binh:{d:'250mg',f:'q8h'},
-        nang:{d:'250mg',f:'q8h'},
-        nguy_kich:{d:'500mg',f:'q8h'},
-        note_dose:'(*) Xem thêm chú ý khi CrCl 15-29'},
-      {cmin:0,cmax:14,
-        trung_binh:null,
-        nang:{d:'250mg',f:'q12h'},
-        nguy_kich:{d:'500mg',f:'q12h'},
-        note_dose:'Cân nhắc CRRT thay thế'},
-    ],
-    dialysis:'250mg q12h sau HD; CRRT: 250-500mg q6-8h',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'MAX 4g/ngày; nguy cơ co giật – không dùng liều 1g q6h thường quy (dùng khi đe dọa tính mạng)',
-      'Không pha với NaCl 0,9% chứa dextrose; hòa với dd chuyên dụng rồi pha loãng',
-      'Tránh dùng quá 50mg/kg/ngày ở BN suy thận'
-    ],
-    alt:['meropenem','ertapenem']
-  },
-  {
-    id:'ertapenem', name:'Ertapenem', group:'Carbapenem',
-    aliases:['ertapenem','invanz'],
-    route:'IV', forms:['1g/lọ'],
-    dosing:[
-      {cmin:31,cmax:999,
-        du_phong:{d:'1g',f:'q24h'},
-        trung_binh:{d:'1g',f:'q24h'},
-        nang:{d:'1g',f:'q24h'},
-        nguy_kich:{d:'1g',f:'q24h'}},
-      {cmin:0,cmax:30,
-        du_phong:{d:'500mg',f:'q24h'},
-        trung_binh:{d:'500mg',f:'q24h'},
-        nang:{d:'500mg',f:'q24h'},
-        nguy_kich:{d:'500mg',f:'q24h'}},
-    ],
-    dialysis:'500mg q24h; sau HD: thêm 150mg nếu dùng trong 6h trước HD',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'KHÔNG có tác dụng với Pseudomonas aeruginosa và Acinetobacter',
-      'Truyền trong 30 phút; không truyền nhanh hơn',
-      'Theo dõi chức năng gan khi dùng kéo dài'
-    ],
-    alt:['meropenem','imipenem']
-  },
-  {
-    id:'piperacillin_tazo', name:'Piperacillin/Tazobactam', group:'Beta-lactam/Ức chế BLase',
-    aliases:['pip tazo','pipetazo','piptazo','piperacillin tazobactam','tazocin'],
-    route:'IV', forms:['2.25g/lọ','4.5g/lọ'],
-    dosing:[
-      {cmin:40,cmax:999,
-        trung_binh:{d:'3.375g (¾ lo 4.5g)',f:'q6h'},
-        nang:{d:'4.5g',f:'q6h'},
-        nguy_kich:{d:'4.5g',f:'q6h',ext:'Truyền kéo dài 4h'}},
-      {cmin:20,cmax:39,
-        trung_binh:{d:'2.25g',f:'q6h'},
-        nang:{d:'3.375g',f:'q8h'},
-        nguy_kich:{d:'4.5g',f:'q8h',ext:'Truyền kéo dài 4h'}},
-      {cmin:0,cmax:19,
-        trung_binh:{d:'2.25g',f:'q8h'},
-        nang:{d:'2.25g',f:'q8h'},
-        nguy_kich:{d:'4.5g',f:'q12h'}},
-    ],
-    dialysis:'2.25g q8h (CRRT: 3.375g q6h hoặc 4.5g q8h); sau HD: 2.25g thêm',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Truyền kéo dài 4h (liên tục) tăng PK/PD với vi khuẩn Pseudomonas/Đa kháng',
-      'Ngưỡng Piperacillin 100% thấu qua màng bụng; theo dõi thần kinh khi liều cao',
-      'Viêm phổi BV/HAP: ưu tiên 4.5g q6h truyền kéo dài với BN nặng'
-    ],
-    alt:['ampicillin_sulbactam','cefo_sulbactam']
-  },
-  {
-    id:'ampicillin_sulbactam', name:'Ampicillin/Sulbactam', group:'Beta-lactam/Ức chế BLase',
-    aliases:['amp sulbactam','ampicillin sulbactam','sulbactam','unasyn'],
-    route:'IV', forms:['1.5g/lọ','3g/lọ'],
-    dosing:[
-      {cmin:30,cmax:999,
-        trung_binh:{d:'1.5-3g',f:'q6h'},
-        nang:{d:'3g',f:'q6h'},
-        nguy_kich:{d:'3g',f:'q4-6h'}},
-      {cmin:15,cmax:29,
-        trung_binh:{d:'1.5-3g',f:'q12h'},
-        nang:{d:'3g',f:'q12h'},
-        nguy_kich:{d:'3g',f:'q8h'}},
-      {cmin:5,cmax:14,
-        trung_binh:{d:'1.5-3g',f:'q24h'},
-        nang:{d:'3g',f:'q24h'},
-        nguy_kich:{d:'3g',f:'q12h'}},
-      {cmin:0,cmax:4,
-        trung_binh:null,nang:null,nguy_kich:null,
-        note_dose:'Không có dữ liệu an toàn; cân nhắc thay thế'},
-    ],
-    dialysis:'CRRT (20-25ml/kg/h): 3g q8-12h',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Sulbactam có tác dụng trực tiếp với A.baumannii – liều cao (6g sulbactam/ngày) cho NT đa kháng',
-      'A.baumannii đa kháng: dùng liều Ampicillin/Sulbactam 9g q8h (IDSA 2024) – tính theo liều sulbactam',
-      'Theo dõi phát ban, phản ứng dị ứng; suy thận nặng cân nhắc hiệu chỉnh'
-    ],
-    alt:['piperacillin_tazo','cefo_sulbactam']
-  },
-  {
-    id:'cefo_sulbactam', name:'Cefoperazon/Sulbactam', group:'Beta-lactam/Ức chế BLase',
-    aliases:['cefo sulbactam','cefoperazon sulbactam','sulperazon'],
-    route:'IV', forms:['1g/lọ (500mg/500mg)','2g/lọ (1g/1g)'],
-    dosing:[
-      {cmin:30,cmax:999,
-        trung_binh:{d:'1-2g',f:'q12h'},
-        nang:{d:'2g',f:'q12h'},
-        nguy_kich:{d:'4g',f:'q12h'}},
-      {cmin:15,cmax:29,
-        trung_binh:{d:'Cefoperazon liều đầy đủ; Sulbactam 1g',f:'q12h'},
-        nang:{d:'Cefoperazon liều đầy đủ; Sulbactam 1g',f:'q12h'},
-        nguy_kich:{d:'Cefoperazon liều đầy đủ; Sulbactam 1g',f:'q12h'}},
-      {cmin:0,cmax:14,
-        trung_binh:{d:'Cefoperazon liều đầy đủ; Sulbactam 500mg',f:'q12h'},
-        nang:{d:'Cefoperazon liều đầy đủ; Sulbactam 500mg',f:'q12h'},
-        nguy_kich:{d:'Cefoperazon liều đầy đủ; Sulbactam 500mg',f:'q12h'}},
-    ],
-    dialysis:'Tính theo Cefoperazon (không hiệu chỉnh); Sulbactam 500-1g q12h sau HD',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Sulbactam MAX 4g/ngày (Cefoperazon MAX 12g/ngày); tỷ lệ 1:1',
-      'Tác dụng trực tiếp với A.baumannii qua thành phần Sulbactam',
-      'Cần theo dõi PT/INR khi dùng kéo dài (ảnh hưởng Vit K)'
-    ],
-    alt:['piperacillin_tazo','ampicillin_sulbactam']
-  },
-  {
-    id:'ceftriaxon', name:'Ceftriaxon', group:'Cephalosporin thế hệ 3',
-    aliases:['ceftriaxon','rocephin','cefo 3','ceftriaxone'],
-    route:'IV', forms:['1g/lọ','2g/lọ'],
-    dosing:[
-      {cmin:10,cmax:999,
-        du_phong:{d:'1g',f:'q24h'},
-        trung_binh:{d:'1g',f:'q24h'},
-        nang:{d:'2g',f:'q24h'},
-        nguy_kich:{d:'2g',f:'q12h',note_dose:'VMN/IE: 2g q12h'}},
-      {cmin:0,cmax:9,
-        trung_binh:{d:'1g',f:'q24h'},
-        nang:{d:'2g',f:'q24h'},
-        nguy_kich:{d:'2g',f:'q12h'},
-        note_dose:'Không cần hiệu chỉnh liều thêm; MAX 2g/ngày khi kèm suy gan'},
-    ],
-    dialysis:'Không cần hiệu chỉnh (loại thải qua gan 40%)',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Không cần hiệu chỉnh với suy thận đơn thuần; khi kèm suy gan MAX 2g/ngày',
-      'Tuyệt đối không tiêm chung/pha chung với canxi IV (đặc biệt trẻ sơ sinh)',
-      'VMN do vi khuẩn: 2g q12h; Viêm màng trong tim Enterococcus: 2g q12h + ampicillin'
-    ],
-    alt:['cefotaxim','ceftazidim']
-  },
-  {
-    id:'cefotaxim', name:'Cefotaxim', group:'Cephalosporin thế hệ 3',
-    aliases:['cefotaxim','claforan','cefotaxime'],
-    route:'IV', forms:['500mg/lọ','1g/lọ','2g/lọ'],
-    dosing:[
-      {cmin:50,cmax:999,
-        trung_binh:{d:'1-2g',f:'q6-8h'},
-        nang:{d:'2g',f:'q4-8h'},
-        nguy_kich:{d:'2g',f:'q4h',note_dose:'VMN/NT tủy xương/VNTM: 2g q4h, MAX 12g/ngày'}},
-      {cmin:10,cmax:49,
-        trung_binh:{d:'1-2g',f:'q8-12h'},
-        nang:{d:'2g',f:'q8h'},
-        nguy_kich:{d:'2g',f:'q6-8h'}},
-      {cmin:0,cmax:9,
-        trung_binh:{d:'1g',f:'q12-24h'},
-        nang:{d:'2g',f:'q12h'},
-        nguy_kich:{d:'2g',f:'q12h'}},
-    ],
-    dialysis:'2g q12h (CRRT: 2g q8h)',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'VMN vi khuẩn: 2g q4-6h, MAX 12g/ngày – truyền trong 30 phút',
-      'Không cần hiệu chỉnh khi suy gan; theo dõi chức năng thận',
-      'Không có tác dụng với Pseudomonas aeruginosa'
-    ],
-    alt:['ceftriaxon','ceftazidim']
-  },
-  {
-    id:'ceftazidim', name:'Ceftazidim', group:'Cephalosporin thế hệ 3 (chống Pseudomonas)',
-    aliases:['ceftazidim','fortum','tazidime','ceftazidime'],
-    route:'IV', forms:['500mg/lọ','1g/lọ','2g/lọ'],
-    dosing:[
-      {cmin:50,cmax:999,
-        trung_binh:{d:'1g',f:'q8h'},
-        nang:{d:'2g',f:'q8h'},
-        nguy_kich:{d:'2g',f:'q6-8h',ext:'Liên tục: LD 2g, MD 6g/24h'}},
-      {cmin:30,cmax:49,
-        trung_binh:{d:'1g',f:'q12h'},
-        nang:{d:'2g',f:'q12h'},
-        nguy_kich:{d:'2g',f:'q8-12h'}},
-      {cmin:15,cmax:29,
-        trung_binh:{d:'1g',f:'q24h'},
-        nang:{d:'1-2g',f:'q24h'},
-        nguy_kich:{d:'2g',f:'q24h'}},
-      {cmin:0,cmax:14,
-        trung_binh:{d:'500mg',f:'q24-48h'},
-        nang:{d:'0.5-1g',f:'q24h'},
-        nguy_kich:{d:'1g',f:'q24h'}},
-    ],
-    dialysis:'CRRT: 2g q8-12h; Sau HD: 1g thêm',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Có tác dụng với Pseudomonas aeruginosa; truyền liên tục (Extended infusion) tăng PK/PD',
-      'Cystic fibrosis/Melioidosis: 2g q6-8h (MAX 6g/ngày)',
-      'Hiệu chỉnh liều theo thận là bắt buộc khi CrCl <50'
-    ],
-    alt:['cefepim','cefo_sulbactam']
-  },
-  {
-    id:'cefepim', name:'Cefepim', group:'Cephalosporin thế hệ 4',
-    aliases:['cefepim','maxipime','cefepime'],
-    route:'IV', forms:['500mg/lọ','1g/lọ','2g/lọ'],
-    dosing:[
-      {cmin:60,cmax:999,
-        du_phong:{d:'1g',f:'q24h'},
-        trung_binh:{d:'1g',f:'q8-12h'},
-        nang:{d:'2g',f:'q12h'},
-        nguy_kich:{d:'2g',f:'q8h',ext:'Truyền kéo dài 3-4h'}},
-      {cmin:30,cmax:59,
-        trung_binh:{d:'1g',f:'q12h'},
-        nang:{d:'2g',f:'q12-24h'},
-        nguy_kich:{d:'2g',f:'q12h'}},
-      {cmin:10,cmax:29,
-        trung_binh:{d:'500mg',f:'q24h'},
-        nang:{d:'1g',f:'q24h'},
-        nguy_kich:{d:'2g',f:'q24h'}},
-      {cmin:0,cmax:9,
-        trung_binh:{d:'250mg',f:'q24h'},
-        nang:{d:'500mg',f:'q24h'},
-        nguy_kich:{d:'1g',f:'q24h',note_dose:'Nặng: LD 2g'}},
-    ],
-    dialysis:'LD 2g sau đó 500mg q24h hoặc 1g q24h (CRRT: 1-2g q12h)',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Nguy cơ neurotoxicity (lú lẫn, co giật) khi tích lũy thuốc ở BN suy thận',
-      'Truyền kéo dài 3-4h với 2g q8h cho NT nặng do P.aeruginosa',
-      'Cân nhắc truyền liên tục (MIC-based) khi NT đa kháng'
-    ],
-    alt:['ceftazidim','piperacillin_tazo']
-  },
-  {
-    id:'ceftazidim_avibactam', name:'Ceftazidim/Avibactam', group:'Cephalosporin + Ức chế BLase mới',
-    aliases:['caz avi','ceftazidim avibactam','avycaz','ctaz avi'],
-    route:'IV', forms:['2.5g/lọ (2g/0.5g)'],
-    dosing:[
-      {cmin:50,cmax:999,
-        trung_binh:{d:'2.5g',f:'q8h'},
-        nang:{d:'2.5g',f:'q8h'},
-        nguy_kich:{d:'2.5g',f:'q8h',note_dose:'MIC>4: tăng thời gian truyền lên 3h'}},
-      {cmin:31,cmax:49,
-        trung_binh:{d:'1.25g',f:'q8h'},
-        nang:{d:'1.25g',f:'q8h'},
-        nguy_kich:{d:'1.25g',f:'q8h'}},
-      {cmin:16,cmax:30,
-        trung_binh:{d:'0.94g',f:'q12h'},
-        nang:{d:'0.94g',f:'q12h'},
-        nguy_kich:{d:'0.94g',f:'q12h'}},
-      {cmin:6,cmax:15,
-        trung_binh:{d:'0.94g',f:'q24h'},
-        nang:{d:'0.94g',f:'q24h'},
-        nguy_kich:{d:'0.94g',f:'q24h'}},
-      {cmin:0,cmax:5,
-        trung_binh:{d:'0.94g',f:'q48h'},
-        nang:{d:'0.94g',f:'q48h'},
-        nguy_kich:{d:'0.94g',f:'q48h'}},
-    ],
-    dialysis:'CRRT: 0.94g q8h; CRRT liều cao: 2.5g q8h',
-    prep:{sol:'NaCl 0,9%',vol:250,time:120,se:false},
-    notes:[
-      'Truyền trong 2 giờ là bắt buộc; pha trong 250ml NaCl 0,9%',
-      'Chỉ định: KPC, OXA-48 và một số ESBL – KHÔNG tác dụng NDM/MBL',
-      'Phối hợp với Aztreonam 30mg/kg/ngày khi gặp MBL-producing Enterobacteriaceae'
-    ],
-    alt:['ceftolozan_tazo','meropenem']
-  },
-  {
-    id:'ceftolozan_tazo', name:'Ceftolozan/Tazobactam', group:'Cephalosporin + Ức chế BLase mới',
-    aliases:['ceftolozan tazobactam','ceftolozane','zerbaxa'],
-    route:'IV', forms:['1.5g/lọ (1g/0.5g)'],
-    dosing:[
-      {cmin:51,cmax:999,
-        trung_binh:{d:'1.5g',f:'q8h'},
-        nang:{d:'1.5g',f:'q8h'},
-        nguy_kich:{d:'3g',f:'q8h',note_dose:'HAP/VAP: 3g q8h'}},
-      {cmin:31,cmax:50,
-        trung_binh:{d:'750mg',f:'q8h'},
-        nang:{d:'750mg',f:'q8h'},
-        nguy_kich:{d:'1.5g',f:'q8h'}},
-      {cmin:16,cmax:30,
-        trung_binh:{d:'375mg',f:'q8h'},
-        nang:{d:'375mg',f:'q8h'},
-        nguy_kich:{d:'750mg',f:'q8h'}},
-      {cmin:0,cmax:15,
-        trung_binh:{d:'LD 750mg; MD 150mg',f:'q8h'},
-        nang:{d:'LD 750mg; MD 150mg',f:'q8h'},
-        nguy_kich:{d:'LD 1.5g; MD 300mg',f:'q8h'}},
-    ],
-    dialysis:'CRRT: 1.5g q8h (theo Ceftazidim/Avibactam)',
-    prep:{sol:'NaCl 0,9%',vol:100,time:60,se:false},
-    notes:[
-      'Tác dụng với P.aeruginosa kháng MDR/XDR; KHÔNG tác dụng với KPC, MBL',
-      'Truyền trong 1 giờ; HAP/VAP: tăng liều lên 3g q8h',
-      'Theo dõi chức năng thận mỗi 24-48h; hiệu chỉnh liều bắt buộc'
-    ],
-    alt:['ceftazidim_avibactam','piperacillin_tazo']
-  },
-  {
-    id:'cefazolin', name:'Cefazolin', group:'Cephalosporin thế hệ 1',
-    aliases:['cefazolin','kefzol','ancef'],
-    route:'IV', forms:['500mg/lọ','1g/lọ','2g/lọ'],
-    dosing:[
-      {cmin:35,cmax:999,
-        du_phong:{d:'1g',f:'liều duy nhất (phẫu thuật)'},
-        trung_binh:{d:'1g',f:'q8h'},
-        nang:{d:'2g',f:'q8h'},
-        nguy_kich:{d:'2g',f:'q6h'}},
-      {cmin:11,cmax:34,
-        du_phong:{d:'1g',f:'liều duy nhất'},
-        trung_binh:{d:'1g',f:'q12h'},
-        nang:{d:'2g',f:'q12h'},
-        nguy_kich:{d:'2g',f:'q8h'}},
-      {cmin:0,cmax:10,
-        trung_binh:{d:'1g',f:'q24h'},
-        nang:{d:'2g',f:'q24h'},
-        nguy_kich:{d:'2g',f:'q24h'}},
-    ],
-    dialysis:'1g sau mỗi lần HD; CRRT: 1-2g q12h',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Dự phòng phẫu thuật: 1g (BN ≥120kg: 2g) truyền 30-60 phút trước rạch da',
-      'Phổ chủ yếu Gram dương (MSSA); không dùng cho MRSA',
-      'BN béo phì: 3g nếu BN ≥120kg cho phẫu thuật'
-    ],
-    alt:['cefuroxim','cefotaxim']
-  },
-  {
-    id:'cefuroxim', name:'Cefuroxim', group:'Cephalosporin thế hệ 2',
-    aliases:['cefuroxim','zinacef','cefuroxime','zinnat'],
-    route:'IV', forms:['750mg/lọ','1.5g/lọ'],
-    dosing:[
-      {cmin:30,cmax:999,
-        du_phong:{d:'1.5g',f:'liều duy nhất (phẫu thuật)'},
-        trung_binh:{d:'0.75-1.5g',f:'q8h'},
-        nang:{d:'1.5g',f:'q8h'},
-        nguy_kich:{d:'1.5g',f:'q6h'}},
-      {cmin:10,cmax:29,
-        trung_binh:{d:'0.75g',f:'q12h'},
-        nang:{d:'1.5g',f:'q12h'},
-        nguy_kich:{d:'1.5g',f:'q8h'}},
-      {cmin:0,cmax:9,
-        trung_binh:{d:'0.75g',f:'q24h'},
-        nang:{d:'1.5g',f:'q24h'},
-        nguy_kich:{d:'1.5g',f:'q24h'}},
-    ],
-    dialysis:'1.5g sau mỗi HD; CRRT: 1.5g q12h',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Truyền cần thiết 3 giờ (không dùng 30 phút) khi dùng cho CVVHDF',
-      'Phổ rộng hơn cephalosporin thế hệ 1; có tác dụng với H.influenzae',
-      'Không cần hiệu chỉnh khi suy gan'
-    ],
-    alt:['cefazolin','ceftriaxon']
-  },
-  {
-    id:'ciprofloxacin', name:'Ciprofloxacin', group:'Fluoroquinolone',
-    aliases:['cipro','ciprofloxacin','ciprofloxacine','ciprobay'],
-    route:'IV/PO', forms:['200mg/100ml','400mg/200ml','500mg viên','750mg viên'],
-    dosing:[
-      {cmin:50,cmax:999,
-        trung_binh:{d:'400mg IV',f:'q12h',po:'500mg PO q12h'},
-        nang:{d:'400mg IV',f:'q8h',po:'750mg PO q12h'},
-        nguy_kich:{d:'400mg IV',f:'q8h',po:'750mg PO q12h',note_dose:'Pseudomonas: 400mg IV q8h hoặc 750mg PO q12h'}},
-      {cmin:30,cmax:49,
-        trung_binh:{d:'400mg IV',f:'q24h',po:'500mg PO q24h'},
-        nang:{d:'400mg IV',f:'q12h',po:'500mg PO q12h'},
-        nguy_kich:{d:'400mg IV',f:'q12h',po:'750mg PO q12h'}},
-      {cmin:0,cmax:29,
-        trung_binh:{d:'400mg IV',f:'q24h (UTI: không đổi)'},
-        nang:{d:'400mg IV',f:'q24h'},
-        nguy_kich:{d:'400mg IV',f:'q12-24h'}},
-    ],
-    dialysis:'CVVHDF: 400mg q8-12h; sau HD: 500mg PO q24h',
-    prep:{sol:'NaCl 0,9%',vol:100,time:60,se:false,ready:true},
-    notes:[
-      'Theo dõi kéo dài QTc; thận trọng khi dùng cùng thuốc kéo dài QT',
-      'Không dùng cùng antacid, sữa (uống); uống cách nhau ít nhất 2h',
-      'VK Pseudomonas: cần liều cao nhất có thể (MIC-based)'
-    ],
-    alt:['levofloxacin','moxifloxacin']
-  },
-  {
-    id:'levofloxacin', name:'Levofloxacin', group:'Fluoroquinolone',
-    aliases:['levofloxacin','tavanic','levo','levaquin'],
-    route:'IV/PO', forms:['500mg/100ml IV','500mg viên','750mg viên'],
-    dosing:[
-      {cmin:50,cmax:999,
-        du_phong:{d:'500mg',f:'q24h'},
-        trung_binh:{d:'500mg',f:'q24h'},
-        nang:{d:'750mg',f:'q24h'},
-        nguy_kich:{d:'750mg',f:'q24h',note_dose:'Viêm phổi nặng/NT phức tạp: 750mg q24h'}},
-      {cmin:20,cmax:49,
-        du_phong:{d:'500mg x1 sau đó 250mg',f:'q24h'},
-        trung_binh:{d:'500mg x1 sau đó 250mg',f:'q24h'},
-        nang:{d:'750mg x1 sau đó 500mg',f:'q48h'},
-        nguy_kich:{d:'750mg x1 sau đó 500mg',f:'q48h'}},
-      {cmin:10,cmax:19,
-        trung_binh:{d:'500mg x1 sau đó 250mg',f:'q48h (UTI: 250mg q24h)'},
-        nang:{d:'750mg x1 sau đó 500mg',f:'q48h'},
-        nguy_kich:{d:'750mg x1 sau đó 500mg',f:'q48h'}},
-      {cmin:0,cmax:9,
-        trung_binh:{d:'500mg x1 sau đó 250mg',f:'q48h'},
-        nang:{d:'750mg x1 sau đó 500mg',f:'q48h'},
-        nguy_kich:{d:'750mg x1 sau đó 500mg',f:'q48h'}},
-    ],
-    dialysis:'CVVHDF: 500mg q24h hoặc Hoặc 500mg q48h (CVVH)',
-    prep:{sol:'NaCl 0,9%',vol:100,time:60,se:false,ready:true},
-    notes:[
-      'Theo dõi kéo dài QTc; không dùng kèm antipsychotics, erythromycin',
-      'Viêm phổi cộng đồng nặng: 750mg q24h x 5-7 ngày',
-      'BN béo phì (>120kg): cân nhắc 750mg q12h; theo dõi TDM nếu có'
-    ],
-    alt:['ciprofloxacin','moxifloxacin']
-  },
-  {
-    id:'moxifloxacin', name:'Moxifloxacin', group:'Fluoroquinolone',
-    aliases:['moxifloxacin','avelox','moxi'],
-    route:'IV/PO', forms:['400mg/250ml IV','400mg viên'],
-    dosing:[
-      {cmin:0,cmax:999,
-        du_phong:null,
-        trung_binh:{d:'400mg',f:'q24h'},
-        nang:{d:'400mg',f:'q24h'},
-        nguy_kich:{d:'400mg',f:'q24h',note_dose:'Không tác dụng với Pseudomonas'}},
-    ],
-    dialysis:'Không cần hiệu chỉnh theo thận',
-    prep:{sol:'NaCl 0,9%',vol:250,time:60,se:false,ready:true},
-    notes:[
-      'KHÔNG tác dụng với Pseudomonas aeruginosa – không dùng thay thế levofloxacin/cipro cho NT Pseudomonas',
-      'Theo dõi QTc; Suy gan nặng (Child C) dùng thận trọng',
-      'Không cần hiệu chỉnh khi suy thận; thải chủ yếu qua gan'
-    ],
-    alt:['levofloxacin','ciprofloxacin']
-  },
-  {
-    id:'vancomycin', name:'Vancomycin', group:'Glycopeptide',
-    aliases:['vanco','vancomycin','vancocin'],
-    route:'IV', forms:['500mg/lọ','1g/lọ'],
-    dosing:[
-      {cmin:90,cmax:999,
-        du_phong:{d:'15mg/kg (thường 1g)',f:'liều duy nhất trước phẫu thuật'},
-        trung_binh:{d:'15-20mg/kg',f:'q8-12h'},
-        nang:{d:'LD 20-35mg/kg (max 3g); MD 15-20mg/kg',f:'q8-12h',
-          note_dose:'LD xem xét 20-35mg/kg; BN béo phì LD 20-25mg/kg (MAX 3g)'},
-        nguy_kich:{d:'LD 25-30mg/kg; MD 15-20mg/kg',f:'q8h',
-          note_dose:'ICU: LD 25-30mg/kg; MD theo TDM AUC₀₋₂₄/MIC 400-600. Có thể truyền liên tục'}},
-      {cmin:50,cmax:89,
-        trung_binh:{d:'15mg/kg',f:'q12h'},
-        nang:{d:'LD 20-25mg/kg; MD 15-20mg/kg',f:'q12h'},
-        nguy_kich:{d:'LD 25-30mg/kg; MD 15-20mg/kg',f:'q12h',note_dose:'Theo TDM AUC'}},
-      {cmin:15,cmax:49,
-        trung_binh:{d:'10-15mg/kg',f:'q24h'},
-        nang:{d:'LD 20mg/kg; MD 10-15mg/kg',f:'q24h'},
-        nguy_kich:{d:'LD 20-25mg/kg; MD 10-15mg/kg',f:'q24h theo TDM'}},
-      {cmin:0,cmax:14,
-        trung_binh:{d:'10-15mg/kg',f:'q48-72h theo TDM'},
-        nang:{d:'LD 15-20mg/kg; sau đó theo TDM',f:'q48-72h'},
-        nguy_kich:{d:'LD 15-20mg/kg; MD theo TDM',f:'q72-96h — cân nhắc CRRT'}},
-    ],
-    dialysis:'CVVHDF: LD 20-25mg/kg; MD 7.5-10mg/kg q12h (tốc độ lọc 20-25ml/kg/h)\nCVVHD: MD 10-15mg/kg q24h\nCVVH: MD 10-15mg/kg q24-48h\nICU/ECMO/ARC: LD 25-30mg/kg; MD 15-20mg/kg q8-12h — ưu tiên TDM',
-    prep:{sol:'NaCl 0,9%',vol:250,time:90,se:false},
-    notes:[
-      'TDM bắt buộc: AUC₀₋₂₄/MIC mục tiêu 400-600 mg·h/L — lấy mẫu Cp (3-4h sau liều) và Ctr (trước liều tiếp theo)',
-      'LD: xem xét 20-35mg/kg cho NT nặng bất kể CrCl; BN béo phì dùng cân nặng thực, LD MAX 3g',
-      'Hội chứng Red Man: truyền chậm ≥1h/1g; dùng kháng histamine nếu xảy ra',
-      'Độc thận: theo dõi creatinine mỗi 24-48h; nguy cơ tăng khi phối hợp aminoglycoside/pip-tazo/NSAID',
-      'Truyền liên tục: có thể cân nhắc ở ICU; tham khảo quy trình kỹ thuật TDM Vancomycin 2023',
-      'PNCT: C — cân nhắc nguy cơ/lợi ích; ưu tiên TDM nếu phải dùng'
-    ],
-    alt:['teicoplanin','linezolid']
-  },
-  {
-    id:'teicoplanin', name:'Teicoplanin', group:'Glycopeptide',
-    aliases:['teicoplanin','targocid','teico'],
-    route:'IM/IV', forms:['200mg/lọ','400mg/lọ'],
-    special_dosing:'teicoplanin',
-    ld_indications:[
+    "dual_col": false,
+    "dosing": [
       {
-        label:'NT da/mô mềm, viêm phổi, NT tiểu phức tạp',
-        ld:'6mg/kg (max 400mg)',
-        times:'× 3 lần',
-        f:'mỗi 12h',
-        note:'NT mức độ trung bình'
+        "cmin": 30,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1,2g",
+          "f": "q8h"
+        },
+        "nang": {
+          "d": "1,2g",
+          "f": "q6-8h"
+        },
+        "nguy_kich": {
+          "d": "1,2g",
+          "f": "q6h; đánh giá đáp ứng"
+        }
       },
       {
-        label:'VNTM, NT xương khớp, sepsis nặng, septic shock',
-        ld:'12mg/kg',
-        times:'× 3-5 lần',
-        f:'mỗi 12h',
-        note:'NT nặng/nguy kịch — ưu tiên 5 liều trong VNTM & NT xương'
+        "cmin": 10,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1,2g",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "1,2g",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "1,2g",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 9,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1,2g",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "1,2g",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "1,2g",
+          "f": "q24h"
+        }
       }
     ],
-    md_day5:[
-      { cmin:80, cmax:999, label:'CrCl ≥80 ml/min', f:'q24h (liều đầy đủ)' },
-      { cmin:30, cmax:79, label:'CrCl 30–79 ml/min', f:'q48h  hoặc ½ liều q24h' },
-      { cmin:0,  cmax:29, label:'CrCl <30 ml/min',   f:'q72h  hoặc ⅓ liều q24h', note:'CrCl <20: TDM bắt buộc' }
-    ],
-    md_dialysis:'CRRT: MD q48h (hoặc ½ liều q24h) – bắt đầu từ ngày 5\nICU/ECMO/ARC: cân nhắc tăng MD; TDM Ctrough ≥15mg/L',
-    dialysis:'LD: 6mg/kg q12h × 3 lần (NT trung bình) hoặc 12mg/kg q12h × 3-5 lần (NT nặng/VNTM)\nCRRT: MD q48h (hoặc ½ liều q24h) – bắt đầu từ ngày 5\nICU/ECMO/ARC: cân nhắc tăng MD; TDM Ctrough ≥15mg/L',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'LD KHÔNG thay đổi theo CrCl — luôn dùng đủ liều tấn công theo chỉ định',
-      'Chỉnh liều MD CHỈ BẮT ĐẦU TỪ NGÀY 5, không chỉnh sớm hơn',
-      'Béo phì: dùng cân nặng thực (TBW)',
-      'TDM: Ctrough mục tiêu ≥15-20 mg/L; NT nặng ≥30mg/L',
-      'KHÔNG thấm dịch não tủy — không dùng viêm màng não',
-      'PNCT: không nên dùng — không có dữ liệu an toàn',
-      'C.difficile: uống 100-200mg × 2 lần/ngày × 7-14 ngày'
-    ],
-    alt:['vancomycin','linezolid']
-  },
-  {
-    id:'linezolid', name:'Linezolid', group:'Oxazolidinone',
-    aliases:['linezolid','zyvox','zyvoxid'],
-    route:'IV/PO', forms:['600mg/300ml IV','600mg viên'],
-    dosing:[
-      {cmin:0,cmax:999,
-        du_phong:null,
-        trung_binh:{d:'600mg',f:'q12h'},
-        nang:{d:'600mg',f:'q12h'},
-        nguy_kich:{d:'600mg',f:'q12h',note_dose:'CrCl<30: nếu >10 ngày, cân nhắc giảm 300mg sau 72h'}},
-    ],
-    dialysis:'Không cần hiệu chỉnh; CRRT: 600mg q12h; ARC: có thể cần TDM',
-    prep:{sol:'NaCl 0,9%',vol:300,time:60,se:false,ready:true},
-    notes:[
-      'Ức chế MAO yếu: tránh dùng với SSRI/serotonergic drugs (nguy cơ serotonin syndrome)',
-      'Theo dõi huyết học mỗi tuần (giảm tiểu cầu, thiếu máu); hạn chế dùng >14 ngày',
-      'Cmin mục tiêu 2-7 mg/L; ARC/BN ICU: nên TDM'
-    ],
-    alt:['vancomycin','daptomycin']
-  },
-  {
-    id:'daptomycin', name:'Daptomycin', group:'Lipopeptide',
-    aliases:['daptomycin','cubicin'],
-    route:'IV', forms:['350mg/lọ','500mg/lọ'],
-    dosing:[
-      {cmin:30,cmax:999,
-        du_phong:null,
-        trung_binh:{d:'4mg/kg',f:'q24h (NT da/mô mềm)'},
-        nang:{d:'6-8mg/kg',f:'q24h (NTH/VNTM)'},
-        nguy_kich:{d:'8-10mg/kg',f:'q24h',note_dose:'NT nặng/VNTM: MAX 10mg/kg trong NT nặng'}},
-      {cmin:0,cmax:29,
-        trung_binh:{d:'4mg/kg',f:'q48h'},
-        nang:{d:'6mg/kg',f:'q48h'},
-        nguy_kich:{d:'8-10mg/kg',f:'q48h'}},
-    ],
-    dialysis:'CRRT: 6mg/kg q24h; sau HD: dùng sau mỗi lần HD',
-    prep:{sol:'NaCl 0,9%',vol:50,time:30,se:true},
-    notes:[
-      'TUYỆT ĐỐI KHÔNG dùng trong viêm phổi (bị bất hoạt bởi surfactant phổi)',
-      'Theo dõi CPK hàng tuần; ngừng thuốc nếu CPK >1000 U/L hoặc có đau cơ',
-      'Tương tác với Statin: tăng nguy cơ myopathy – cân nhắc ngừng statin tạm thời'
-    ],
-    alt:['vancomycin','linezolid']
-  },
-  {
-    id:'colistin', name:'Colistin', group:'Polymyxin',
-    aliases:['colistin','colistimethate','polymyxin e','colistimethate sodium'],
-    route:'IV', forms:['1MIU/lọ (80mg CBA)','150mg CBA/lọ'],
-    special_dosing:'colistin',
-    ld_cba:{
-      formula:'4mg CBA/kg IBW',
-      mgkg:4,
-      maxMg:300, maxMIU:9,
-      ibw_men:60, ibw_women:45,
-      note:'× 1 liều; MD bắt đầu sau 12h'
+    "dialysis": "HD: dùng sau lọc máu; CRRT: thường 1,2g q8-12h tùy tốc độ lọc",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc nước cất pha tiêm theo tờ HDSD",
+      "vol": 100,
+      "time": 30,
+      "se": false,
+      "note_sol": "Dùng ngay sau pha; không pha chung với máu/protein hydrolysate/nhũ tương lipid"
     },
-    md_by_crcl:[
-      { cmin:80, cmax:999, md:'165 mg CBA ~ 5 MIU',   f:'q12h' },
-      { cmin:70, cmax:79,  md:'150 mg CBA ~ 4,5 MIU', f:'q12h' },
-      { cmin:50, cmax:69,  md:'133 mg CBA ~ 4 MIU',   f:'q12h' },
-      { cmin:40, cmax:49,  md:'110 mg CBA ~ 3,5 MIU', f:'q12h' },
-      { cmin:30, cmax:39,  md:'98 mg CBA ~ 3 MIU',    f:'q12h' },
-      { cmin:15, cmax:29,  md:'83 mg CBA ~ 2,5 MIU',  f:'q12h' },
-      { cmin:0,  cmax:14,  md:'65 mg CBA ~ 2 MIU',    f:'q12h' }
+    "notes": [
+      "Không có tác dụng với Pseudomonas/ESBL.",
+      "Theo dõi dị ứng beta-lactam, chức năng gan, tiêu chảy/C. difficile.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
     ],
-    dialysis:'CRRT: 220 mg CBA q12h ~ 6,5 MIU q12h\nHoặc 100 mg CBA q8h ~ 3 MIU q8h (tốc độ lọc 20-25 mL/kg/h)\nICU/ECMO/ARC (không CRRT): 4,5-5,5 MIU q12h',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Quy đổi: 1mg CBA = 30,000 IU; 1 MIU = 33mg CBA',
-      'LD = 4mg CBA/kg IBW (max 300mg = 9 MIU) × 1 liều – dùng IBW, không dùng cân nặng thực (TBW)',
-      'IBW tham khảo (VN U80): Cụ ông ~60kg → 240mg CBA (7,3 MIU) | Cụ bà ~45kg → 180mg CBA (5,5 MIU)',
-      'Độc thận nghiêm trọng: theo dõi creatinine mỗi 24-48h; bù dịch đầy đủ',
-      'Khí dung viêm phổi Gram âm đa kháng: 75-150mg (2-4 MIU) q12h'
-    ],
-    alt:['piperacillin_tazo','ceftazidim_avibactam']
+    "alt": []
   },
   {
-    id:'tigecyclin', name:'Tigecyclin', group:'Glycylcycline',
-    aliases:['tigecyclin','tygacil','tigecycline'],
-    route:'IV', forms:['50mg/lọ'],
-    dosing:[
-      {cmin:0,cmax:999,
-        du_phong:null,
-        trung_binh:{d:'LD 100mg; MD 50mg',f:'q12h'},
-        nang:{d:'LD 100mg; MD 50mg',f:'q12h'},
-        nguy_kich:{d:'LD 200mg; MD 100mg',f:'q12h',note_dose:'NT A.baumannii đa kháng/S.maltophilia: LD 200mg MD 100mg q12h'}},
+    "id": "benzathin_benzylpenicilin_1200000",
+    "name": "Benzathin benzylpenicilin 1.200.000 IU",
+    "active": "Benzathin benzylpenicilin",
+    "group": "Penicillin tác dụng kéo dài",
+    "aliases": [
+      "benzathin benzylpenicilin 1.200.000 iu",
+      "benzathin benzylpenicilin"
     ],
-    dialysis:'Không cần hiệu chỉnh theo thận',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Nghiên cứu cho thấy tỷ lệ tử vong cao hơn ở BN NT nặng – KHÔNG dùng đơn trị liệu trong NKH nặng',
-      'Không hiệu quả với Pseudomonas, Proteus, Providencia; tỷ lệ đề kháng tăng với A.baumannii',
-      'Theo dõi men gan, buồn nôn (hay gặp); không dùng cho trẻ <8 tuổi'
+    "route": "IM",
+    "forms": [
+      "1.200.000 IU/lọ"
     ],
-    alt:['colistin','meropenem']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 0,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1,2 triệu IU IM",
+          "f": "liều đơn hoặc theo phác đồ"
+        },
+        "nang": {
+          "d": "2,4 triệu IU IM",
+          "f": "theo chỉ định giang mai/thấp tim"
+        },
+        "nguy_kich": {
+          "d": "Không dùng đơn độc",
+          "f": "cho nhiễm khuẩn cấp nặng cần IV"
+        }
+      }
+    ],
+    "dialysis": "Không cần hiệu chỉnh thận thường quy; không cần bổ sung sau HD",
+    "prep": {
+      "sol": "Dung môi kèm lọ hoặc nước cất pha tiêm",
+      "vol": 4,
+      "time": 0,
+      "se": false,
+      "note_sol": "Chỉ tiêm bắp sâu, không tiêm/truyền tĩnh mạch"
+    },
+    "notes": [
+      "Theo dõi phản vệ; khai thác dị ứng penicillin.",
+      "Không dùng IV.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'metronidazol', name:'Metronidazol', group:'Imidazole',
-    aliases:['metro','metronidazol','flagyl','metronidazole'],
-    route:'IV/PO', forms:['500mg/100ml IV','250mg viên','500mg viên'],
-    dosing:[
-      {cmin:10,cmax:999,
-        du_phong:null,
-        trung_binh:{d:'500mg',f:'q8h'},
-        nang:{d:'500mg',f:'q6-8h'},
-        nguy_kich:{d:'500mg',f:'q6h',note_dose:'MAX 4g/ngày'}},
-      {cmin:0,cmax:9,
-        trung_binh:{d:'500mg',f:'q8-12h'},
-        nang:{d:'500mg',f:'q8h'},
-        nguy_kich:{d:'500mg',f:'q8h'}},
+    "id": "biseptol_480",
+    "name": "Biseptol 480",
+    "active": "Sulfamethoxazol + trimethoprim",
+    "group": "Sulfonamid phối hợp",
+    "aliases": [
+      "biseptol 480",
+      "sulfamethoxazol + trimethoprim"
     ],
-    dialysis:'Không cần hiệu chỉnh thêm; chất chuyển hóa tích lũy – dùng q8h',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false,ready:true},
-    notes:[
-      'KHÔNG dùng cho phụ nữ có thai 3 tháng đầu; thận trọng 3 tháng giữa/cuối',
-      'Tránh rượu trong khi dùng và 48h sau khi ngừng (phản ứng disulfiram)',
-      'Thận trọng khi suy gan nặng (Child C): giảm liều 50% hoặc tăng khoảng cách liều'
+    "route": "PO",
+    "forms": [
+      "400mg + 80mg viên"
     ],
-    alt:['clindamycin','ornidazol']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 30,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1 viên 400/80mg",
+          "f": "q12h; PCP/NT nặng tính theo TMP mg/kg"
+        },
+        "nang": {
+          "d": "TMP 8-10mg/kg/ngày",
+          "f": "chia q6-12h"
+        },
+        "nguy_kich": {
+          "d": "TMP 15-20mg/kg/ngày",
+          "f": "chia q6-8h, TDM/điện giải"
+        }
+      },
+      {
+        "cmin": 15,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "50% liều thường dùng",
+          "f": "hoặc kéo dài khoảng cách liều"
+        },
+        "nang": {
+          "d": "TMP 5mg/kg",
+          "f": "q12-24h"
+        },
+        "nguy_kich": {
+          "d": "Giảm 50% liều",
+          "f": "theo dõi sát"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 14,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "Tránh dùng nếu có lựa chọn khác",
+          "f": "nếu bắt buộc dùng theo dõi sát"
+        },
+        "nang": {
+          "d": "Không khuyến cáo",
+          "f": ""
+        },
+        "nguy_kich": {
+          "d": "Hội chẩn",
+          "f": ""
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: cá thể hóa theo chỉ định và TMP mg/kg",
+    "prep": {
+      "sol": "Không áp dụng",
+      "vol": 0,
+      "time": 0,
+      "se": false,
+      "note_sol": "Dạng uống"
+    },
+    "notes": [
+      "Theo dõi kali máu, creatinin, công thức máu; tránh phối hợp ACEI/ARB/spironolacton nếu nguy cơ tăng K+.",
+      "Cẩn trọng thiếu G6PD, dị ứng sulfonamid, suy gan/thận nặng.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'clindamycin', name:'Clindamycin', group:'Lincosamide',
-    aliases:['clindamycin','dalacin','dalacin c'],
-    route:'IV/PO', forms:['600mg/4ml IV','150mg viên','300mg viên'],
-    dosing:[
-      {cmin:0,cmax:999,
-        du_phong:null,
-        trung_binh:{d:'600mg',f:'q8h'},
-        nang:{d:'600-900mg',f:'q8h'},
-        nguy_kich:{d:'900mg',f:'q8h',note_dose:'NT nặng/MRSA mô mềm: 30-40mg/kg/ngày q6-8h; MAX 2700mg/ngày'}},
+    "id": "bivelox_iv",
+    "name": "Bivelox I.V 5mg/ml",
+    "active": "Levofloxacin",
+    "group": "Fluoroquinolone",
+    "aliases": [
+      "bivelox i.v 5mg/ml",
+      "levofloxacin"
     ],
-    dialysis:'Không cần hiệu chỉnh theo thận',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Nguy cơ C.difficile cao – theo dõi tiêu chảy; ngừng thuốc nếu tiêu chảy nặng',
-      'Không hiệu chỉnh theo thận hoặc gan nhẹ-trung bình; thận trọng suy gan nặng',
-      'Không dùng truyền tĩnh mạch nhanh (nguy cơ block tim); tốc độ ≤30mg/phút'
+    "route": "IV",
+    "forms": [
+      "500mg/100ml"
     ],
-    alt:['metronidazol','vancomycin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 50,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "750mg",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "750mg",
+          "f": "q24h"
+        }
+      },
+      {
+        "cmin": 20,
+        "cmax": 49,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg liều đầu, sau đó 250mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "750mg",
+          "f": "q48h"
+        },
+        "nguy_kich": {
+          "d": "750mg",
+          "f": "q48h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 19,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg liều đầu, sau đó 250mg",
+          "f": "q48h"
+        },
+        "nang": {
+          "d": "750mg liều đầu, sau đó 500mg",
+          "f": "q48h"
+        },
+        "nguy_kich": {
+          "d": "750mg liều đầu, sau đó 500mg",
+          "f": "q48h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: thường 500mg q24-48h tùy tốc độ lọc",
+    "prep": {
+      "sol": "Dung dịch truyền sẵn hoặc NaCl 0,9%/Glucose 5%",
+      "vol": 100,
+      "time": 60,
+      "se": false,
+      "note_sol": "Tránh truyền nhanh; không pha chung cation đa hóa trị"
+    },
+    "notes": [
+      "Nguy cơ kéo dài QT, viêm gân/đứt gân, rối loạn đường huyết và thần kinh ngoại biên.",
+      "Tránh dùng chung thuốc kéo dài QT; uống cách antacid/sắt/kẽm.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'amikacin', name:'Amikacin', group:'Aminoglycoside',
-    aliases:['amikacin','amikin','amikacine'],
-    route:'IV', forms:['250mg/2ml','500mg/2ml'],
-    dual_col:true,
-    dosing:[
-      {cmin:60,cmax:999,
-        trung_binh:{d_trad:'5-7.5mg/kg',f_trad:'q8h',d:'15mg/kg',f:'q24h ODA'},
-        nang:{d_trad:'7.5-10mg/kg',f_trad:'q8h',d:'15-20mg/kg',f:'q24h ODA'},
-        nguy_kich:{d_trad:'10mg/kg',f_trad:'q8h; TDM',d:'LD 20-25mg/kg; MD 15-20mg/kg',f:'q24h ODA'}},
-      {cmin:40,cmax:59,
-        trung_binh:{d_trad:'5-7.5mg/kg',f_trad:'q12h',d:'15mg/kg',f:'q36h ODA'},
-        nang:{d_trad:'7.5mg/kg',f_trad:'q12h',d:'15mg/kg',f:'q36h ODA'},
-        nguy_kich:{d_trad:'7.5mg/kg',f_trad:'q12h; TDM',d:'15mg/kg',f:'q36h ODA; TDM'}},
-      {cmin:20,cmax:39,
-        trung_binh:{d_trad:'5-7.5mg/kg',f_trad:'q24-36h',d:'15mg/kg',f:'q48h ODA; TDM'},
-        nang:{d_trad:'7.5mg/kg',f_trad:'q36h',d:'15mg/kg',f:'q48h ODA; TDM'},
-        nguy_kich:{d_trad:'7.5mg/kg',f_trad:'q36h; TDM bắt buộc',d:'15mg/kg',f:'q48h ODA; TDM bắt buộc'}},
-      {cmin:0,cmax:19,
-        trung_binh:{d_trad:'5-7.5mg/kg',f_trad:'q48h; TDM',d:'Không ODA',f:'TDM bắt buộc'},
-        nang:{d_trad:'7.5mg/kg',f_trad:'q48h; TDM',d:'Không ODA',f:'TDM bắt buộc'},
-        nguy_kich:{d_trad:'7.5mg/kg',f_trad:'q48h; TDM bắt buộc',d:'Không khuyến cáo ODA',f:''}},
+    "id": "cebest",
+    "name": "Cebest",
+    "active": "Cefpodoxim",
+    "group": "Cephalosporin thế hệ 3 đường uống",
+    "aliases": [
+      "cebest",
+      "cefpodoxim"
     ],
-    dialysis:'CRRT: 7.5mg/kg q24h; sau HD: 5-7.5mg/kg x1 thêm – theo TDM',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'TDM bắt buộc: ODA – Cpeak 50-60mg/L sau 1h; Ctrough <5mcg/mL (lý tưởng <1)',
-      'Theo dõi thính lực và chức năng thận mỗi 48-72h; nguy cơ độc tai không hồi phục',
-      'Dùng cân nặng hiệu chỉnh cho BN béo phì: AdjBW = IBW + 0.4(TBW-IBW)'
+    "route": "PO",
+    "forms": [
+      "100mg viên/gói"
     ],
-    alt:['gentamicin','tobramycin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 30,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "100-200mg",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "100-200mg",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "100-200mg",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "100-200mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "100-200mg",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "100-200mg",
+          "f": "q24h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu",
+    "prep": {
+      "sol": "Không áp dụng",
+      "vol": 0,
+      "time": 0,
+      "se": false,
+      "note_sol": "Dạng uống"
+    },
+    "notes": [
+      "Theo dõi dị ứng beta-lactam và tiêu chảy.",
+      "Phù hợp nhiễm khuẩn cộng đồng mức độ nhẹ-trung bình; không dùng cho nhiễm khuẩn nặng cần IV.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'gentamicin', name:'Gentamicin', group:'Aminoglycoside',
-    aliases:['gentamicin','garamycin','gentamycin'],
-    route:'IV', forms:['40mg/2ml','80mg/2ml'],
-    dual_col:true,
-    dosing:[
-      {cmin:60,cmax:999,
-        trung_binh:{d_trad:'1.7-2.3mg/kg',f_trad:'q8h',d:'5mg/kg',f:'q24h ODA'},
-        nang:{d_trad:'1.7-2.3mg/kg',f_trad:'q8h',d:'5-7mg/kg',f:'q24h ODA'},
-        nguy_kich:{d_trad:'2.5-3mg/kg',f_trad:'q8h; TDM',d:'LD 5-7mg/kg; MD 5mg/kg',f:'q24h ODA'}},
-      {cmin:40,cmax:59,
-        trung_binh:{d_trad:'1.7-2.3mg/kg',f_trad:'q12h',d:'5mg/kg',f:'q36h ODA'},
-        nang:{d_trad:'1.7-2.3mg/kg',f_trad:'q12h',d:'5mg/kg',f:'q36h ODA'},
-        nguy_kich:{d_trad:'1.7-2.3mg/kg',f_trad:'q12h; TDM',d:'5mg/kg',f:'q36h; TDM'}},
-      {cmin:20,cmax:39,
-        trung_binh:{d_trad:'1mg/kg',f_trad:'q12h; TDM',d:'3mg/kg',f:'q48h ODA; TDM'},
-        nang:{d_trad:'1.7mg/kg',f_trad:'q24h; TDM',d:'3-5mg/kg',f:'q48h ODA; TDM'},
-        nguy_kich:{d_trad:'1mg/kg',f_trad:'q12h; TDM bắt buộc',d:'5mg/kg',f:'q48h; TDM bắt buộc'}},
-      {cmin:0,cmax:19,
-        trung_binh:{d_trad:'1mg/kg',f_trad:'q24-48h; TDM',d:'Không ODA',f:'TDM bắt buộc'},
-        nang:{d_trad:'1-1.7mg/kg',f_trad:'theo TDM',d:'Không ODA',f:'cân nhắc thay thế'},
-        nguy_kich:{d_trad:'Không khuyến cáo',f_trad:'cân nhắc thay thế',d:'Không ODA',f:'cân nhắc thay thế'}},
+    "id": "cefixime_stada_200",
+    "name": "Cefixime STADA 200mg",
+    "active": "Cefixim",
+    "group": "Cephalosporin thế hệ 3 đường uống",
+    "aliases": [
+      "cefixime stada 200mg",
+      "cefixim"
     ],
-    dialysis:'Sau HD: 1-1.7mg/kg x1; CRRT: 2.5mg/kg q24h theo TDM',
-    prep:{sol:'NaCl 0,9%',vol:50,time:30,se:true},
-    notes:[
-      'TDM: ODA – Cpeak 10-12mg/L; Ctrough <2mg/L; liều truyền thông thường: Cpeak 5-8mg/L',
-      'Độc tai và thận như Amikacin; theo dõi chức năng thận mỗi 48h',
-      'Phối hợp với Penicillin/Ampicillin cho NT Enterococcus/Streptococcal endocarditis'
+    "route": "PO",
+    "forms": [
+      "200mg viên"
     ],
-    alt:['amikacin','tobramycin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 60,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "400mg/ngày",
+          "f": "q24h hoặc 200mg q12h"
+        },
+        "nang": {
+          "d": "400mg/ngày",
+          "f": "q24h hoặc 200mg q12h"
+        },
+        "nguy_kich": {
+          "d": "400mg/ngày",
+          "f": "q24h hoặc 200mg q12h"
+        }
+      },
+      {
+        "cmin": 21,
+        "cmax": 59,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "300mg/ngày",
+          "f": "q24h hoặc chia q12h"
+        },
+        "nang": {
+          "d": "300mg/ngày",
+          "f": "q24h hoặc chia q12h"
+        },
+        "nguy_kich": {
+          "d": "300mg/ngày",
+          "f": "q24h hoặc chia q12h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 20,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "200mg/ngày",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "200mg/ngày",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "200mg/ngày",
+          "f": "q24h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; thường 200mg/ngày",
+    "prep": {
+      "sol": "Không áp dụng",
+      "vol": 0,
+      "time": 0,
+      "se": false,
+      "note_sol": "Dạng uống"
+    },
+    "notes": [
+      "Theo dõi dị ứng beta-lactam, tiêu chảy/C. difficile.",
+      "Không dùng cho nhiễm khuẩn nặng cần nồng độ huyết thanh cao.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'aztreonam', name:'Aztreonam', group:'Monobactam',
-    aliases:['aztreonam','azactam'],
-    route:'IV', forms:['1g/lọ','2g/lọ'],
-    dosing:[
-      {cmin:30,cmax:999,
-        trung_binh:{d:'1-2g',f:'q8h'},
-        nang:{d:'2g',f:'q6-8h'},
-        nguy_kich:{d:'2g',f:'q6h',note_dose:'Truyền liên tục khi NT Pseudomonas nặng'}},
-      {cmin:10,cmax:29,
-        trung_binh:{d:'1g',f:'q8h hoặc 0.5g q6h'},
-        nang:{d:'1g',f:'q8h'},
-        nguy_kich:{d:'2g',f:'q12h'}},
-      {cmin:0,cmax:9,
-        trung_binh:{d:'500mg',f:'q12h'},
-        nang:{d:'1g',f:'q12h'},
-        nguy_kich:{d:'2g',f:'q12h'}},
+    "id": "cefoperazone_1000_syt25",
+    "name": "Cefoperazone 1000 SYT-25",
+    "active": "Cefoperazon",
+    "group": "Cephalosporin thế hệ 3",
+    "aliases": [
+      "cefoperazone 1000 syt-25",
+      "cefoperazon"
     ],
-    dialysis:'Sau HD: thêm 500mg; CRRT: 2g q8h',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Không có phản ứng chéo với penicillin/cephalosporin – an toàn với dị ứng beta-lactam',
-      'Phổ chỉ Gram âm hiếu khí; không tác dụng Gram dương hoặc kỵ khí',
-      'Phối hợp với Ceftazidim-Avibactam cho MBL-producing organisms'
+    "route": "IV",
+    "forms": [
+      "1g/lọ"
     ],
-    alt:['ceftazidim','ciprofloxacin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 0,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1-2g",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "2g",
+          "f": "q8-12h"
+        },
+        "nguy_kich": {
+          "d": "2-3g",
+          "f": "q8-12h; theo phác đồ"
+        }
+      }
+    ],
+    "dialysis": "Thường không cần hiệu chỉnh đơn độc theo thận; HD không loại bỏ đáng kể. Nếu đồng thời suy gan + suy thận: giới hạn liều và theo dõi",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 30,
+      "se": false
+    },
+    "notes": [
+      "Theo dõi chức năng gan, xuất huyết/hypoprothrombinemia; cân nhắc vitamin K khi nguy cơ cao.",
+      "Tránh rượu nếu chế phẩm có chuỗi NMTT; theo dõi phản ứng kiểu disulfiram.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'tmp_smx', name:'TMP/Sulfamethoxazole (Cotrim)', group:'Sulfonamide',
-    aliases:['cotrim','tmp smx','trimethoprim','bactrim','tmp-smx','sulfamethoxazole'],
-    route:'IV/PO', forms:['80/400mg viên','160/800mg viên','400mg/5ml IV'],
-    dosing:[
-      {cmin:30,cmax:999,
-        trung_binh:{d:'1-2 viên 960mg',f:'q12h (hoặc 5-10mg/kg TMP q6-12h)'},
-        nang:{d:'5mg/kg TMP',f:'q6-8h'},
-        nguy_kich:{d:'CNS/PCP/Stenotrophomonas: 10-20mg/kg TMP',f:'chia q6-8h'}},
-      {cmin:15,cmax:29,
-        trung_binh:{d:'Giảm 50% liều',f:'q12h'},
-        nang:{d:'5mg/kg TMP',f:'q12h'},
-        nguy_kich:{d:'5-10mg/kg TMP',f:'q12h'}},
-      {cmin:0,cmax:14,
-        trung_binh:{d:'Tránh dùng nếu có thể',f:''},
-        nang:{d:'Tránh dùng',f:'nếu có alternative'},
-        nguy_kich:{d:'3-5mg/kg TMP',f:'q12-24h – cân nhắc lợi ích/nguy cơ'}},
+    "id": "cefoxitin_1g",
+    "name": "Cefoxitin 1g",
+    "active": "Cefoxitin",
+    "group": "Cephamycin",
+    "aliases": [
+      "cefoxitin 1g",
+      "cefoxitin"
     ],
-    dialysis:'Sau HD: 1 viên thêm mỗi lần HD; CRRT: 5mg/kg TMP q12h',
-    prep:{sol:'Dextrose 5%',vol:100,time:60,se:false,note_sol:'Pha trong D5W (KHÔNG pha NaCl)'},
-    notes:[
-      'HÒA TRONG DEXTROSE 5% – KHÔNG pha trong NaCl 0,9% (kết tủa)',
-      'Nguy cơ tăng kali máu và giảm chức năng thận; theo dõi điện giải và creatinine',
-      'Không dùng cho PNCT 3 tháng đầu và cuối; nguy cơ dị tật và vàng da sơ sinh'
+    "route": "IV",
+    "forms": [
+      "1g/lọ"
     ],
-    alt:['doxycyclin','levofloxacin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 50,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1-2g",
+          "f": "q6-8h"
+        },
+        "nang": {
+          "d": "1-2g",
+          "f": "q6-8h"
+        },
+        "nguy_kich": {
+          "d": "1-2g",
+          "f": "q6-8h"
+        }
+      },
+      {
+        "cmin": 30,
+        "cmax": 49,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1-2g",
+          "f": "q8-12h"
+        },
+        "nang": {
+          "d": "1-2g",
+          "f": "q8-12h"
+        },
+        "nguy_kich": {
+          "d": "1-2g",
+          "f": "q8-12h"
+        }
+      },
+      {
+        "cmin": 10,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1-2g",
+          "f": "q12-24h"
+        },
+        "nang": {
+          "d": "1-2g",
+          "f": "q12-24h"
+        },
+        "nguy_kich": {
+          "d": "1-2g",
+          "f": "q12-24h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 9,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1g",
+          "f": "q24-48h"
+        },
+        "nang": {
+          "d": "1g",
+          "f": "q24-48h"
+        },
+        "nguy_kich": {
+          "d": "1g",
+          "f": "q24-48h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: thường 1-2g q12h tùy tốc độ lọc",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 30,
+      "se": false
+    },
+    "notes": [
+      "Theo dõi dị ứng beta-lactam, bạch cầu nếu dùng kéo dài.",
+      "Có phổ kỵ khí nhưng không thay thế carbapenem trong nhiễm ESBL nặng.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'fluconazole', name:'Fluconazole', group:'Azole (Antifungal)',
-    aliases:['fluconazole','diflucan','fluconazol'],
-    route:'IV/PO', forms:['100mg viên','150mg viên','200mg viên','400mg/200ml IV'],
-    dosing:[
-      {cmin:50,cmax:999,
-        du_phong:{d:'200-400mg',f:'q24h'},
-        trung_binh:{d:'400mg (6mg/kg)',f:'q24h'},
-        nang:{d:'LD 800mg (12mg/kg) ngày 1; MD 400mg (6mg/kg)',f:'q24h'},
-        nguy_kich:{d:'LD 800mg ngày 1; MD 800mg',f:'q24h'}},
-      {cmin:0,cmax:49,
-        du_phong:{d:'100-200mg',f:'q24h'},
-        trung_binh:{d:'LD 800mg ngày 1; MD 200-400mg',f:'q48h (Hoặc giảm 50%)'},
-        nang:{d:'LD 800mg ngày 1; MD 400mg',f:'q48h'},
-        nguy_kich:{d:'LD 800mg ngày 1; MD 400-800mg',f:'q48h'}},
+    "id": "ceftazidime_1000",
+    "name": "Ceftazidime 1000",
+    "active": "Ceftazidim",
+    "group": "Cephalosporin thế hệ 3 kháng Pseudomonas",
+    "aliases": [
+      "ceftazidime 1000",
+      "ceftazidim"
     ],
-    dialysis:'CVVHDF: 400mg q24h (LD không đổi)',
-    prep:{sol:'NaCl 0,9%',vol:200,time:60,se:false,ready:true},
-    notes:[
-      'LD KHÔNG đổi theo chức năng thận; chỉ hiệu chỉnh liều duy trì',
-      'Theo dõi chức năng gan; QTc; tương tác thuốc nhiều (CYP2C9/3A4)',
-      'C.glabrata (C.nivariensis) thường kém nhạy; C.krusei kháng tự nhiên – dùng Echinocandin'
+    "route": "IV",
+    "forms": [
+      "1000mg/lọ"
     ],
-    alt:['voriconazole','caspofungin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 51,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1-2g",
+          "f": "q8-12h"
+        },
+        "nang": {
+          "d": "2g",
+          "f": "q8h"
+        },
+        "nguy_kich": {
+          "d": "2g",
+          "f": "q8h"
+        }
+      },
+      {
+        "cmin": 31,
+        "cmax": 50,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1g",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "1g",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "1g",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 16,
+        "cmax": 30,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1g",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "1g",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "1g",
+          "f": "q24h"
+        }
+      },
+      {
+        "cmin": 6,
+        "cmax": 15,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg-1g",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "500mg-1g",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "500mg-1g",
+          "f": "q24h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 5,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg-1g",
+          "f": "q48h"
+        },
+        "nang": {
+          "d": "500mg-1g",
+          "f": "q48h"
+        },
+        "nguy_kich": {
+          "d": "500mg-1g",
+          "f": "q48h"
+        }
+      }
+    ],
+    "dialysis": "HD: 1g sau lọc máu; CRRT: 1-2g q12h tùy tốc độ lọc và MIC",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 30,
+      "se": false
+    },
+    "notes": [
+      "Theo dõi độc thần kinh/co giật khi suy thận nếu không hiệu chỉnh.",
+      "Có tác dụng với Pseudomonas; không tin cậy với ESBL.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'voriconazole', name:'Voriconazole', group:'Azole (Antifungal)',
-    aliases:['voriconazole','vfend','voriconazol'],
-    route:'IV/PO', forms:['200mg viên','200mg/lọ IV'],
-    dosing:[
-      {cmin:50,cmax:999,
-        trung_binh:{d:'LD 6mg/kg q12h x1 ngày; MD 4mg/kg',f:'q12h'},
-        nang:{d:'LD 6mg/kg q12h x1 ngày; MD 4mg/kg',f:'q12h',note_dose:'Nhiễm trùng nặng: MD có thể 6mg/kg q12h (≥40kg: 200-300mg PO q12h)'},
-        nguy_kich:{d:'LD 6mg/kg q12h x1 ngày; MD 4-6mg/kg',f:'q12h'}},
-      {cmin:0,cmax:49,
-        trung_binh:{d:'IV TRÁNH DÙNG (SBECD tích lũy) – chuyển PO ngay; PO LD 400mg; MD 200mg',f:'q12h (≥40kg)'},
-        nang:{d:'PO: LD 400mg q12h x1 ngày; MD 200-300mg',f:'q12h'},
-        nguy_kich:{d:'PO: LD 400mg q12h; MD 200-300mg',f:'q12h – tránh IV'}},
+    "id": "cepemid_1_5g",
+    "name": "Cepemid 1,5g",
+    "active": "Imipenem + cilastatin",
+    "group": "Carbapenem",
+    "aliases": [
+      "cepemid 1,5g",
+      "imipenem + cilastatin"
     ],
-    dialysis:'PO không đổi; TRÁNH IV khi CrCl <50 (tích lũy SBECD)',
-    prep:{sol:'NaCl 0,9%',vol:250,time:90,se:false},
-    notes:[
-      'TRÁNH IV khi CrCl <50 ml/min – SBECD (chất pha loãng IV) tích lũy; chuyển sang dạng uống',
-      'TDM bắt buộc: Cmin mục tiêu 1-5.5 µg/mL; lấy mẫu trước liều lần 2 (48h sau khi bắt đầu)',
-      'Tác dụng phụ thị giác (nhạy sáng, nhìn mờ), men gan tăng, kéo dài QT; theo dõi thường xuyên'
+    "route": "IV",
+    "forms": [
+      "1,5g/lọ"
     ],
-    alt:['fluconazole','caspofungin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 70,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg imipenem",
+          "f": "q6h"
+        },
+        "nang": {
+          "d": "500mg",
+          "f": "q6h"
+        },
+        "nguy_kich": {
+          "d": "500mg",
+          "f": "q6h"
+        }
+      },
+      {
+        "cmin": 41,
+        "cmax": 69,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg",
+          "f": "q8h"
+        },
+        "nang": {
+          "d": "500mg",
+          "f": "q8h"
+        },
+        "nguy_kich": {
+          "d": "500mg",
+          "f": "q8h"
+        }
+      },
+      {
+        "cmin": 21,
+        "cmax": 40,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "250-500mg",
+          "f": "q8-12h"
+        },
+        "nang": {
+          "d": "250-500mg",
+          "f": "q8-12h"
+        },
+        "nguy_kich": {
+          "d": "250-500mg",
+          "f": "q8-12h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 20,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "250mg",
+          "f": "q12h; tránh nếu CrCl <15 không HD"
+        },
+        "nang": {
+          "d": "250mg",
+          "f": "q12h; tránh nếu CrCl <15 không HD"
+        },
+        "nguy_kich": {
+          "d": "250mg",
+          "f": "q12h; tránh nếu CrCl <15 không HD"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: 250-500mg q6-8h theo tốc độ lọc",
+    "prep": {
+      "sol": "NaCl 0,9%",
+      "vol": 100,
+      "time": 30,
+      "se": false
+    },
+    "notes": [
+      "Tăng nguy cơ co giật khi suy thận/CNS; bắt buộc hiệu chỉnh liều.",
+      "Không dùng liều cao khi CrCl thấp.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'caspofungin', name:'Caspofungin', group:'Echinocandin (Antifungal)',
-    aliases:['caspofungin','cancidas'],
-    route:'IV', forms:['50mg/lọ','70mg/lọ'],
-    dosing:[
-      {cmin:0,cmax:999,
-        du_phong:null,
-        trung_binh:{d:'LD 70mg x1; MD 50mg',f:'q24h'},
-        nang:{d:'LD 70mg x1; MD 50mg',f:'q24h'},
-        nguy_kich:{d:'LD 70mg x1; MD 70mg',f:'q24h',note_dose:'Tăng lên 70mg khi dùng cùng rifampin/phenytoin hoặc inducer mạnh'}},
+    "id": "ciproven_10mg_ml",
+    "name": "Ciproven 10mg/ml",
+    "active": "Ciprofloxacin",
+    "group": "Fluoroquinolone",
+    "aliases": [
+      "ciproven 10mg/ml",
+      "ciprofloxacin"
     ],
-    dialysis:'Không cần hiệu chỉnh theo thận',
-    prep:{sol:'NaCl 0,9%',vol:250,time:60,se:false},
-    notes:[
-      'Không cần hiệu chỉnh liều theo thận; giảm liều duy trì xuống 35mg/ngày khi suy gan nặng (Child-Pugh >9)',
-      'Khi dùng cùng rifampin, phenytoin, dexamethasone (inducer): tăng MD lên 70mg/ngày',
-      'Theo dõi men gan khi dùng kéo dài; ít tương tác thuốc hơn voriconazole'
+    "route": "IV",
+    "forms": [
+      "200mg/20ml hoặc dung dịch theo quy cách"
     ],
-    alt:['micafungin','anidulafungin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 50,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "IV 400mg q12h hoặc PO 500mg",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "IV 400mg q8h hoặc PO 750mg",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "IV 400mg q8h hoặc PO 750mg",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 30,
+        "cmax": 49,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 5,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q18-24h"
+        },
+        "nang": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q18-24h"
+        },
+        "nguy_kich": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q18-24h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 4,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q24h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: 400mg q12-24h tùy tốc độ lọc",
+    "prep": {
+      "sol": "Dung dịch truyền/NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 60,
+      "se": false
+    },
+    "notes": [
+      "Nguy cơ kéo dài QT, viêm gân, rối loạn đường huyết; tránh phối hợp cation đường uống.",
+      "Theo dõi tương tác warfarin, theophyllin, thuốc kéo dài QT.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'micafungin', name:'Micafungin', group:'Echinocandin (Antifungal)',
-    aliases:['micafungin','mycamine'],
-    route:'IV', forms:['50mg/lọ','100mg/lọ'],
-    dosing:[
-      {cmin:0,cmax:999,
-        trung_binh:{d:'100mg (>40kg) hoặc 2mg/kg (≤40kg)',f:'q24h (Candida xâm lấn)'},
-        nang:{d:'150mg (>40kg) hoặc 2.5mg/kg (≤40kg)',f:'q24h (Candida thực quản)'},
-        nguy_kich:{d:'ICU/ECMO: 200mg',f:'q24h; Aspergillus xâm lấn: 150-300mg q24h'}},
+    "id": "colistimed",
+    "name": "Colistimed",
+    "active": "Colistin",
+    "group": "Polymyxin",
+    "aliases": [
+      "colistimed",
+      "colistin"
     ],
-    dialysis:'Không cần hiệu chỉnh theo thận; ICU/ECMO có thể cần 200mg/ngày',
-    prep:{sol:'NaCl 0,9%',vol:100,time:60,se:false},
-    notes:[
-      'Không cần hiệu chỉnh theo thận hoặc gan nhẹ-trung bình',
-      'Dự phòng nấm Candida ở BN ghép tế bào gốc: 50mg q24h (≥30kg)',
-      'ICU/ECMO: nên tăng liều lên 150-200mg/ngày do thay đổi Vd'
+    "route": "IV",
+    "forms": [
+      "2 MIU/lọ"
     ],
-    alt:['caspofungin','anidulafungin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 80,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 9 MIU, sau đó 4,5 MIU",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "LD 9 MIU, sau đó 4,5 MIU",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "LD 9 MIU, sau đó 4,5 MIU",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 50,
+        "cmax": 79,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 9 MIU, sau đó 3 MIU",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "LD 9 MIU, sau đó 3 MIU",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "LD 9 MIU, sau đó 3 MIU",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 30,
+        "cmax": 49,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 9 MIU, sau đó 2,25-3 MIU",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "LD 9 MIU, sau đó 2,25-3 MIU",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "LD 9 MIU, sau đó 2,25-3 MIU",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 10,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 9 MIU, sau đó 1,5-2,25 MIU",
+          "f": "q12-24h"
+        },
+        "nang": {
+          "d": "LD 9 MIU, sau đó 1,5-2,25 MIU",
+          "f": "q12-24h"
+        },
+        "nguy_kich": {
+          "d": "LD 9 MIU, sau đó 1,5-2,25 MIU",
+          "f": "q12-24h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 9,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 9 MIU nếu nhiễm nặng, MD cá thể hóa",
+          "f": "q24-48h"
+        },
+        "nang": {
+          "d": "LD 9 MIU nếu nhiễm nặng, MD cá thể hóa",
+          "f": "q24-48h"
+        },
+        "nguy_kich": {
+          "d": "LD 9 MIU nếu nhiễm nặng, MD cá thể hóa",
+          "f": "q24-48h"
+        }
+      }
+    ],
+    "dialysis": "HD/CRRT: bắt buộc cá thể hóa theo phương thức lọc; ưu tiên hội chẩn dược lâm sàng và TDM nếu có",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc nước cất pha tiêm rồi pha loãng",
+      "vol": 50,
+      "time": 30,
+      "se": false,
+      "note_sol": "Dùng ngay sau pha; tránh dùng dung dịch quá hạn ổn định"
+    },
+    "notes": [
+      "Nguy cơ độc thận/độc thần kinh cao; theo dõi SCr hằng ngày, điện giải, yếu cơ/ngừng thở.",
+      "Liều tính theo colistin base activity/MIU; cần thống nhất đơn vị trước kê đơn.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'anidulafungin', name:'Anidulafungin', group:'Echinocandin (Antifungal)',
-    aliases:['anidulafungin','eraxis'],
-    route:'IV', forms:['100mg/lọ'],
-    dosing:[
-      {cmin:0,cmax:999,
-        trung_binh:{d:'LD 200mg ngày 1; MD 100mg',f:'q24h (Candida xâm lấn)'},
-        nang:{d:'LD 200mg ngày 1; MD 100mg',f:'q24h'},
-        nguy_kich:{d:'LD 200mg ngày 1; MD 100mg',f:'q24h'}},
+    "id": "curam_625",
+    "name": "Curam 625mg",
+    "active": "Amoxicilin + acid clavulanic",
+    "group": "Penicillin + ức chế beta-lactamase",
+    "aliases": [
+      "curam 625mg",
+      "amoxicilin + acid clavulanic"
     ],
-    dialysis:'Không cần hiệu chỉnh',
-    prep:{sol:'D5W hoặc NaCl 0,9%',vol:250,time:180,se:false},
-    notes:[
-      'Truyền trong 3 giờ là bắt buộc (tốc độ MAX 1.1mg/phút); truyền nhanh gây đỏ da/phản ứng',
-      'Không cần hiệu chỉnh theo thận hoặc gan',
-      'Không có dữ liệu dùng cho trẻ < 1 tháng'
+    "route": "PO",
+    "forms": [
+      "500mg + 125mg viên"
     ],
-    alt:['caspofungin','micafungin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 30,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500/125mg",
+          "f": "q8h hoặc 875/125mg q12h"
+        },
+        "nang": {
+          "d": "875/125mg",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "875/125mg",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 10,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500/125mg",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "500/125mg",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "500/125mg",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 9,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500/125mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "500/125mg",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "500/125mg",
+          "f": "q24h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; tránh viên 875/125mg khi CrCl <30",
+    "prep": {
+      "sol": "Không áp dụng",
+      "vol": 0,
+      "time": 0,
+      "se": false,
+      "note_sol": "Dạng uống"
+    },
+    "notes": [
+      "Theo dõi dị ứng beta-lactam, chức năng gan, tiêu chảy/C. difficile.",
+      "Không có tác dụng với Pseudomonas/ESBL.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'fosfomycin', name:'Fosfomycin', group:'Phosphonic acid',
-    aliases:['fosfomycin','fosfocin'],
-    route:'IV/PO', forms:['4g/lọ (dinatri IV)','3g gói bột uống'],
-    dosing:[
-      {cmin:40,cmax:999,
-        trung_binh:{d:'4-8g',f:'q6-12h (tổng 12-16g/ngày)'},
-        nang:{d:'4-8g',f:'q6-8h (MAX 16g/ngày)'},
-        nguy_kich:{d:'8g',f:'q6h – MAX 24g/ngày với phối hợp'}},
-      {cmin:20,cmax:39,
-        trung_binh:{d:'~75% liều; 4g',f:'q8-12h'},
-        nang:{d:'4g',f:'q6-8h'},
-        nguy_kich:{d:'6g',f:'q8h'}},
-      {cmin:10,cmax:19,
-        trung_binh:{d:'~60% liều; 4g',f:'q12h'},
-        nang:{d:'4g',f:'q12h'},
-        nguy_kich:{d:'4g',f:'q8-12h'}},
-      {cmin:0,cmax:9,
-        trung_binh:{d:'~40% liều; 4g',f:'q24h'},
-        nang:{d:'4g',f:'q24h'},
-        nguy_kich:{d:'4g',f:'q12-24h'}},
+    "id": "fosmicin_iv_2g",
+    "name": "Fosmicin for I.V.USE 2g",
+    "active": "Fosfomycin",
+    "group": "Phosphonic acid derivative",
+    "aliases": [
+      "fosmicin for i.v.use 2g",
+      "fosfomycin"
     ],
-    dialysis:'CRRT: 6-8g q12h; sau HD: 4g thêm',
-    prep:{sol:'NaCl 0,9%',vol:250,time:60,se:false},
-    notes:[
-      'Theo dõi điện giải (Na⁺, K⁺) – pha fosfomycin dinatri có tải lượng natri cao',
-      'Luôn phối hợp với kháng sinh khác để tránh đề kháng nhanh',
-      'Pha trong 250-500ml NaCl 0,9%; truyền trong 1-2 giờ'
+    "route": "IV",
+    "forms": [
+      "2g/lọ"
     ],
-    alt:['pip_tazo','ceftazidim']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 80,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "4g",
+          "f": "q6-8h"
+        },
+        "nang": {
+          "d": "8g",
+          "f": "q8h"
+        },
+        "nguy_kich": {
+          "d": "8g",
+          "f": "q8h"
+        }
+      },
+      {
+        "cmin": 40,
+        "cmax": 79,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "4g",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "6-8g",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "6-8g",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 20,
+        "cmax": 39,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "4g",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "4g",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "4g",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 19,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "2-4g",
+          "f": "q24-48h"
+        },
+        "nang": {
+          "d": "2-4g",
+          "f": "q24-48h"
+        },
+        "nguy_kich": {
+          "d": "2-4g",
+          "f": "q24-48h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: thường 4g q12h hoặc cá thể hóa theo tốc độ lọc",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 60,
+      "se": false
+    },
+    "notes": [
+      "Theo dõi natri, kali, phù/quá tải dịch do tải natri.",
+      "Nên phối hợp trong nhiễm khuẩn nặng do vi khuẩn đa kháng để giảm kháng thuốc.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'azithromycin', name:'Azithromycin', group:'Macrolide',
-    aliases:['azithromycin','zithromax','az','zmax'],
-    route:'IV/PO', forms:['500mg/lọ IV','250mg viên','500mg viên'],
-    dosing:[
-      {cmin:0,cmax:999,
-        du_phong:null,
-        trung_binh:{d:'500mg',f:'q24h'},
-        nang:{d:'500mg',f:'q24h (5-7 ngày; tùy chỉ định)'},
-        nguy_kich:{d:'500mg',f:'q24h'}},
+    "id": "gentamicin_80",
+    "name": "Gentamicin 80mg",
+    "active": "Gentamicin",
+    "group": "Aminoglycoside",
+    "aliases": [
+      "gentamicin 80mg",
+      "gentamicin"
     ],
-    dialysis:'Không cần hiệu chỉnh',
-    prep:{sol:'NaCl 0,9%',vol:250,time:60,se:false,note_sol:'Pha đặc 100mg/ml sau đó pha loãng thêm vào 250ml'},
-    notes:[
-      'Không truyền nhanh (nguy cơ đau vị trí tiêm, phản ứng truyền); truyền ít nhất 60 phút',
-      'Theo dõi QTc; thận trọng khi kết hợp thuốc kéo dài QT',
-      'Thận trọng suy gan nặng (Child B, C); không cần hiệu chỉnh suy thận'
+    "route": "IV",
+    "forms": [
+      "80mg/2ml"
     ],
-    alt:['clarithromycin','doxycyclin']
+    "dual_col": true,
+    "dosing": [
+      {
+        "cmin": 60,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d_trad": "1-1,7mg/kg",
+          "f_trad": "q8h",
+          "d": "5-7mg/kg",
+          "f": "q24h ODA"
+        },
+        "nang": {
+          "d_trad": "1,7mg/kg",
+          "f_trad": "q8h",
+          "d": "7mg/kg",
+          "f": "q24h ODA"
+        },
+        "nguy_kich": {
+          "d_trad": "2mg/kg",
+          "f_trad": "q8h; TDM",
+          "d": "7mg/kg",
+          "f": "q24h; TDM"
+        }
+      },
+      {
+        "cmin": 40,
+        "cmax": 59,
+        "du_phong": null,
+        "trung_binh": {
+          "d_trad": "1-1,7mg/kg",
+          "f_trad": "q12h",
+          "d": "5-7mg/kg",
+          "f": "q36h"
+        },
+        "nang": {
+          "d_trad": "1,7mg/kg",
+          "f_trad": "q12h",
+          "d": "7mg/kg",
+          "f": "q36h"
+        },
+        "nguy_kich": {
+          "d_trad": "1,7mg/kg",
+          "f_trad": "q12h; TDM",
+          "d": "7mg/kg",
+          "f": "q36h; TDM"
+        }
+      },
+      {
+        "cmin": 20,
+        "cmax": 39,
+        "du_phong": null,
+        "trung_binh": {
+          "d_trad": "1-1,7mg/kg",
+          "f_trad": "q24h",
+          "d": "5-7mg/kg",
+          "f": "q48h; TDM"
+        },
+        "nang": {
+          "d_trad": "1,7mg/kg",
+          "f_trad": "q24-36h",
+          "d": "7mg/kg",
+          "f": "q48h"
+        },
+        "nguy_kich": {
+          "d_trad": "1,7mg/kg",
+          "f_trad": "q24-36h; TDM",
+          "d": "7mg/kg",
+          "f": "q48h; TDM"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 19,
+        "du_phong": null,
+        "trung_binh": {
+          "d_trad": "1mg/kg",
+          "f_trad": "q48h; TDM",
+          "d": "Không ODA",
+          "f": "TDM bắt buộc"
+        },
+        "nang": {
+          "d_trad": "1-1,7mg/kg",
+          "f_trad": "q48h; TDM",
+          "d": "Không ODA",
+          "f": "TDM bắt buộc"
+        },
+        "nguy_kich": {
+          "d_trad": "Theo TDM",
+          "f": "",
+          "d": "Không khuyến cáo ODA"
+        }
+      }
+    ],
+    "dialysis": "HD/CRRT: cá thể hóa theo TDM; thường bổ sung sau HD",
+    "prep": {
+      "sol": "NaCl 0,9%",
+      "vol": 100,
+      "time": 30,
+      "se": false
+    },
+    "notes": [
+      "TDM bắt buộc nếu dùng >48h hoặc suy thận; theo dõi độc tai/độc thận.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'tobramycin', name:'Tobramycin', group:'Aminoglycoside',
-    aliases:['tobramycin','tobra','nebcin'],
-    route:'IV', forms:['80mg/2ml','160mg/2ml'],
-    dual_col:true,
-    dosing:[
-      {cmin:60,cmax:999,
-        du_phong:null,
-        trung_binh:{d_trad:'2-2.5mg/kg',f_trad:'q8h',d:'5-7mg/kg',f:'q24h ODA'},
-        nang:{d_trad:'2-2.5mg/kg',f_trad:'q8h',d:'5-7mg/kg',f:'q24h ODA',
-          note_dose:'ODA ưu tiên NT nặng; TDM Cmax 20-30mg/L'},
-        nguy_kich:{d_trad:'LD 5-7mg/kg; MD 5mg/kg',f_trad:'q8-12h; TDM',d:'LD 5-7mg/kg; MD 5mg/kg',f:'q24h ODA — TDM bắt buộc'}},
-      {cmin:40,cmax:59,
-        trung_binh:{d_trad:'2-2.5mg/kg',f_trad:'q12h',d:'5-7mg/kg',f:'q36h ODA'},
-        nang:{d_trad:'2-2.5mg/kg',f_trad:'q12h',d:'5-7mg/kg',f:'q36h ODA'},
-        nguy_kich:{d_trad:'2-2.5mg/kg',f_trad:'q12h; TDM',d:'5-7mg/kg',f:'q36h — TDM bắt buộc'}},
-      {cmin:20,cmax:39,
-        trung_binh:{d_trad:'2-2.5mg/kg',f_trad:'q24h',d:'5-7mg/kg',f:'q48h ODA'},
-        nang:{d_trad:'2-2.5mg/kg',f_trad:'q24h',d:'5-7mg/kg',f:'q48h ODA'},
-        nguy_kich:{d_trad:'2-2.5mg/kg',f_trad:'q24h; TDM',d:'5-7mg/kg',f:'q48h — TDM bắt buộc'}},
-      {cmin:0,cmax:19,
-        trung_binh:{d_trad:'1.5-3mg/kg',f_trad:'liều nạp; sau đó TDM',d:'Không ODA',f:'TDM bắt buộc'},
-        nang:{d_trad:'3-5mg/kg',f_trad:'liều nạp; sau đó TDM',d:'Không ODA',f:'TDM bắt buộc'},
-        nguy_kich:{d_trad:'3-5mg/kg',f_trad:'liều nạp; TDM bắt buộc',d:'Cân nhắc CRRT',f:'— TDM bắt buộc'}},
+    "id": "jw_amikacin",
+    "name": "JW Amikacin",
+    "active": "Amikacin",
+    "group": "Aminoglycoside",
+    "aliases": [
+      "jw amikacin",
+      "amikacin"
     ],
-    dialysis:'CRRT: LD 2-3mg/kg; MD 1-2.5mg/kg q24-48h theo TDM\nSau HD: bổ sung liều sau mỗi lần thẩm tách',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Béo phì: dùng cân nặng hiệu chỉnh AdjBW = IBW + 0.4 × (TBW - IBW)',
-      'TDM bắt buộc: Cmax mục tiêu 20-30 mg/L (ODA); Cmin < 0.5 mg/L trước liều kế tiếp',
-      'Độc thận + ototoxicity: theo dõi creatinine mỗi 24-48h; đánh giá thính lực khi dùng kéo dài',
-      'ODA: hiệu quả hơn nhờ tác dụng diệt khuẩn phụ thuộc nồng độ; tận dụng PAE',
-      'PNCT: D — tránh dùng nếu có thể; nguy cơ ototoxicity cho thai nhi'
+    "route": "IV",
+    "forms": [
+      "500mg/100ml"
     ],
-    alt:['amikacin','gentamicin']
-  },
-{
-    id:'amoxicillin', name:'Amoxicillin', group:'Penicillin',
-    aliases:['amoxicillin','amox','amoxicilin','amoxycillin'],
-    route:'PO', forms:['250mg viên/gói','500mg viên/gói','875mg viên'],
-    dosing:[
-      {cmin:31,cmax:999, nang:{d:'500mg - 1g',f:'q8h hoặc 875mg q12h'}},
-      {cmin:10,cmax:30, nang:{d:'250 - 500mg',f:'q12h'}},
-      {cmin:0,cmax:9, nang:{d:'250 - 500mg',f:'q24h'}},
+    "dual_col": true,
+    "dosing": [
+      {
+        "cmin": 60,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d_trad": "5-7,5mg/kg",
+          "f_trad": "q8h",
+          "d": "15mg/kg",
+          "f": "q24h ODA"
+        },
+        "nang": {
+          "d_trad": "7,5mg/kg",
+          "f_trad": "q8h",
+          "d": "15-20mg/kg",
+          "f": "q24h ODA"
+        },
+        "nguy_kich": {
+          "d_trad": "10mg/kg",
+          "f_trad": "q8h; TDM",
+          "d": "LD 20-25mg/kg; MD 15-20mg/kg",
+          "f": "q24h ODA"
+        }
+      },
+      {
+        "cmin": 40,
+        "cmax": 59,
+        "du_phong": null,
+        "trung_binh": {
+          "d_trad": "5-7,5mg/kg",
+          "f_trad": "q12h",
+          "d": "15mg/kg",
+          "f": "q36h ODA"
+        },
+        "nang": {
+          "d_trad": "7,5mg/kg",
+          "f_trad": "q12h",
+          "d": "15mg/kg",
+          "f": "q36h"
+        },
+        "nguy_kich": {
+          "d_trad": "7,5mg/kg",
+          "f_trad": "q12h; TDM",
+          "d": "15mg/kg",
+          "f": "q36h; TDM"
+        }
+      },
+      {
+        "cmin": 20,
+        "cmax": 39,
+        "du_phong": null,
+        "trung_binh": {
+          "d_trad": "5-7,5mg/kg",
+          "f_trad": "q24-36h",
+          "d": "15mg/kg",
+          "f": "q48h; TDM"
+        },
+        "nang": {
+          "d_trad": "7,5mg/kg",
+          "f_trad": "q36h",
+          "d": "15mg/kg",
+          "f": "q48h; TDM"
+        },
+        "nguy_kich": {
+          "d_trad": "7,5mg/kg",
+          "f_trad": "q36h; TDM",
+          "d": "15mg/kg",
+          "f": "q48h; TDM"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 19,
+        "du_phong": null,
+        "trung_binh": {
+          "d_trad": "5-7,5mg/kg",
+          "f_trad": "q48h; TDM",
+          "d": "Không ODA",
+          "f": "TDM bắt buộc"
+        },
+        "nang": {
+          "d_trad": "7,5mg/kg",
+          "f_trad": "q48h; TDM",
+          "d": "Không ODA",
+          "f": "TDM bắt buộc"
+        },
+        "nguy_kich": {
+          "d_trad": "7,5mg/kg",
+          "f_trad": "q48h; TDM",
+          "d": "Không khuyến cáo ODA",
+          "f": ""
+        }
+      }
     ],
-    dialysis:'HD: 250 - 500mg mỗi 24 giờ; dùng sau lọc máu nếu trùng ngày lọc',
-    prep:{sol:'Không áp dụng',vol:100,time:30,se:false,note_sol:'Đường uống – không cần pha truyền'},
-    notes:[
-      'Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.',
-      'Viên giải phóng kéo dài: không nên dùng khi CrCl < 30 ml/phút.'
+    "dialysis": "CRRT: 7,5mg/kg q24h; sau HD: 5-7,5mg/kg x1 thêm – theo TDM",
+    "prep": {
+      "sol": "Dung dịch truyền sẵn hoặc NaCl 0,9%",
+      "vol": 100,
+      "time": 30,
+      "se": false
+    },
+    "notes": [
+      "TDM bắt buộc; theo dõi thính lực, chức năng thận mỗi 48-72h.",
+      "Dùng cân nặng hiệu chỉnh cho BN béo phì: AdjBW = IBW + 0,4(TBW-IBW).",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
     ],
-    alt:['ampicillin_sulbactam','piperacillin_tazo']
-  },
-  {
-    id:'amphotericin_b_deoxycholate', name:'Amphotericin B deoxycholate', group:'Polyene (Antifungal)',
-    aliases:['amphotericin b','amphotericin deoxycholate','fungsone','ampho b'],
-    route:'IV', forms:['50mg/lọ'],
-    dosing:[
-      {cmin:0,cmax:999, nang:{d:'0,3 - 1mg/kg',f:'q24h tùy chỉ định'}}
-    ],
-    dialysis:'Không cần hiệu chỉnh liều trong IHD/CRRT',
-    prep:{sol:'Dextrose 5%',vol:500,time:240,se:false,note_sol:'Chỉ pha với Dextrose 5%, tránh NaCl'},
-    notes:[
-      'Bệnh nhân rối loạn chức năng thận do thuốc: cân nhắc giảm 50% tổng liều hằng ngày theo bảng nguồn.',
-      'Theo dõi creatinine, kali, magie và phản ứng truyền.'
-    ],
-    alt:['amphotericin_b_lipid_complex','voriconazole','caspofungin']
-  },
-  {
-    id:'amphotericin_b_lipid_complex', name:'Amphotericin B lipid complex', group:'Polyene (Antifungal)',
-    aliases:['amphotericin lipid','amphotericin b lipid complex','abelcet'],
-    route:'IV', forms:['100mg/20ml'],
-    dosing:[
-      {cmin:0,cmax:999, nang:{d:'3 - 5mg/kg',f:'q24h tùy chỉ định'}}
-    ],
-    dialysis:'Không cần hiệu chỉnh liều trong IHD/CRRT',
-    prep:{sol:'Dextrose 5%',vol:500,time:120,se:false,note_sol:'Pha loãng theo thông tin sản phẩm; tránh NaCl nếu chế phẩm yêu cầu'},
-    notes:[
-      'Không cần hiệu chỉnh liều trên suy gan và suy thận theo bảng nguồn.',
-      'Theo dõi độc tính thận và điện giải.'
-    ],
-    alt:['amphotericin_b_deoxycholate','voriconazole','caspofungin']
-  },
-  {
-    id:'cefaclor', name:'Cefaclor', group:'Cephalosporin thế hệ 2',
-    aliases:['cefaclor','ceclor'],
-    route:'PO', forms:['250mg viên/gói','500mg viên'],
-    dosing:[
-      {cmin:0,cmax:999, nang:{d:'250 - 500mg',f:'q8h; ESRD/IHD: dùng sau lọc theo chỉ định'}}
-    ],
-    dialysis:'ESRD/IHD: 250 - 500mg sau lọc máu; PD: 250 - 500mg q8h',
-    prep:{sol:'Không áp dụng',vol:100,time:30,se:false,note_sol:'Đường uống – không cần pha truyền'},
-    notes:['Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'],
-    alt:['cefuroxim','cefpodoxim','cefoxitin']
-  },
-  {
-    id:'cefoperazon', name:'Cefoperazon', group:'Cephalosporin thế hệ 3',
-    aliases:['cefoperazon','cefoperazone'],
-    route:'IV/IM', forms:['1g/lọ','2g/lọ'],
-    dosing:[
-      {cmin:18,cmax:999, nang:{d:'1 - 2g',f:'q12h'}},
-      {cmin:0,cmax:17, nang:{d:'Tối đa 4g/ngày',f:'chia q12h'}}
-    ],
-    dialysis:'Không cần hiệu chỉnh liều trong lọc máu theo bảng nguồn',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:[
-      'Tắc mật nặng: tối đa 2g/ngày; suy gan nặng kèm suy thận cần thận trọng.',
-      'Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'
-    ],
-    alt:['cefo_sulbactam','ceftriaxon','cefotaxim']
-  },
-  {
-    id:'cefoxitin', name:'Cefoxitin', group:'Cephalosporin thế hệ 2',
-    aliases:['cefoxitin','mefoxin'],
-    route:'IV', forms:['1g/lọ','2g/lọ'],
-    dosing:[
-      {cmin:30,cmax:50, nang:{d:'1 - 2g',f:'q6-12h'}},
-      {cmin:10,cmax:29, nang:{d:'1 - 2g',f:'q12-24h'}},
-      {cmin:5,cmax:9, nang:{d:'0,5 - 1g',f:'q12-24h'}},
-      {cmin:0,cmax:4, nang:{d:'0,5 - 1g',f:'q24-48h'}},
-      {cmin:51,cmax:999, nang:{d:'1 - 2g',f:'q6-8h'}}
-    ],
-    dialysis:'HD: liều tải 1 - 2g sau mỗi lần lọc; liều duy trì theo CrCl',
-    prep:{sol:'NaCl 0,9%',vol:100,time:30,se:false},
-    notes:['Suy thận: cân nhắc liều tải 1 - 2g trước khi dùng liều duy trì theo CrCl.'],
-    alt:['cefuroxim','cefaclor','cefpodoxim']
+    "alt": []
   },
   {
-    id:'cefpodoxim', name:'Cefpodoxim', group:'Cephalosporin thế hệ 2',
-    aliases:['cefpodoxim','cefpodoxime','vantin'],
-    route:'PO', forms:['100mg viên','200mg viên'],
-    dosing:[
-      {cmin:30,cmax:999, nang:{d:'100 - 400mg',f:'q12h tùy chỉ định'}},
-      {cmin:0,cmax:29, nang:{d:'Liều chỉ định',f:'q24h'}}
+    "id": "koact_625",
+    "name": "Koact 625",
+    "active": "Amoxicilin + acid clavulanic",
+    "group": "Penicillin + ức chế beta-lactamase",
+    "aliases": [
+      "koact 625",
+      "amoxicilin + acid clavulanic"
     ],
-    dialysis:'HD: dùng 3 lần/tuần sau lọc máu',
-    prep:{sol:'Không áp dụng',vol:100,time:30,se:false,note_sol:'Đường uống – không cần pha truyền'},
-    notes:['Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'],
-    alt:['cefuroxim','cefaclor','cefoxitin']
+    "route": "PO",
+    "forms": [
+      "500mg + 125mg viên"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 30,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500/125mg",
+          "f": "q8h hoặc 875/125mg q12h"
+        },
+        "nang": {
+          "d": "875/125mg",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "875/125mg",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 10,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500/125mg",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "500/125mg",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "500/125mg",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 9,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500/125mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "500/125mg",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "500/125mg",
+          "f": "q24h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; tránh viên 875/125mg khi CrCl <30",
+    "prep": {
+      "sol": "Không áp dụng",
+      "vol": 0,
+      "time": 0,
+      "se": false,
+      "note_sol": "Dạng uống"
+    },
+    "notes": [
+      "Theo dõi dị ứng beta-lactam, chức năng gan, tiêu chảy/C. difficile.",
+      "Không có tác dụng với Pseudomonas/ESBL.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'clarithromycin', name:'Clarithromycin', group:'Macrolide',
-    aliases:['clarithromycin','clarithro','klacid'],
-    route:'PO/IV', forms:['250mg viên','500mg viên','500mg/lọ IV'],
-    dosing:[
-      {cmin:30,cmax:999, nang:{d:'250 - 500mg',f:'q12h'}},
-      {cmin:0,cmax:29, nang:{d:'Giảm 50% liều',f:'q12-24h tùy chỉ định'}}
+    "id": "levofloxacin_kabi",
+    "name": "Levofloxacin Kabi",
+    "active": "Levofloxacin",
+    "group": "Fluoroquinolone",
+    "aliases": [
+      "levofloxacin kabi",
+      "levofloxacin"
     ],
-    dialysis:'Không cần liều bổ sung sau HD; cân nhắc giảm liều khi suy thận nặng',
-    prep:{sol:'NaCl 0,9%',vol:250,time:60,se:false},
-    notes:[
-      'Theo dõi QTc và tương tác thuốc qua CYP3A4.',
-      'Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'
+    "route": "IV",
+    "forms": [
+      "500mg/100ml"
     ],
-    alt:['azithromycin','erythromycin','spiramycin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 50,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "750mg",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "750mg",
+          "f": "q24h"
+        }
+      },
+      {
+        "cmin": 20,
+        "cmax": 49,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg liều đầu, sau đó 250mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "750mg",
+          "f": "q48h"
+        },
+        "nguy_kich": {
+          "d": "750mg",
+          "f": "q48h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 19,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg liều đầu, sau đó 250mg",
+          "f": "q48h"
+        },
+        "nang": {
+          "d": "750mg liều đầu, sau đó 500mg",
+          "f": "q48h"
+        },
+        "nguy_kich": {
+          "d": "750mg liều đầu, sau đó 500mg",
+          "f": "q48h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: thường 500mg q24-48h tùy tốc độ lọc",
+    "prep": {
+      "sol": "Dung dịch truyền sẵn hoặc NaCl 0,9%/Glucose 5%",
+      "vol": 100,
+      "time": 60,
+      "se": false,
+      "note_sol": "Tránh truyền nhanh; không pha chung cation đa hóa trị"
+    },
+    "notes": [
+      "Nguy cơ kéo dài QT, viêm gân/đứt gân, rối loạn đường huyết và thần kinh ngoại biên.",
+      "Tránh dùng chung thuốc kéo dài QT; uống cách antacid/sắt/kẽm.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'doxycyclin', name:'Doxycyclin', group:'Tetracycline',
-    aliases:['doxycyclin','doxycycline','doxy'],
-    route:'PO/IV', forms:['100mg viên','100mg/lọ'],
-    dosing:[
-      {cmin:0,cmax:999, nang:{d:'100mg',f:'q12h'}}
+    "id": "medivernol_1g",
+    "name": "Medivernol 1g",
+    "active": "Ceftriaxon",
+    "group": "Cephalosporin thế hệ 3",
+    "aliases": [
+      "medivernol 1g",
+      "ceftriaxon"
     ],
-    dialysis:'Không cần hiệu chỉnh liều trong IHD/CRRT',
-    prep:{sol:'NaCl 0,9% hoặc Dextrose 5%',vol:100,time:60,se:false},
-    notes:[
-      'Không cần hiệu chỉnh liều trên suy thận theo bảng nguồn.',
-      'Tránh dùng cho phụ nữ có thai và trẻ nhỏ nếu không có chỉ định phù hợp.'
+    "route": "IV/IM",
+    "forms": [
+      "1000mg/lọ"
     ],
-    alt:['tetracyclin','tigecyclin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 0,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1-2g",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "2g",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "2g",
+          "f": "q12-24h theo chỉ định viêm màng não/nhiễm nặng"
+        }
+      }
+    ],
+    "dialysis": "Thường không cần hiệu chỉnh thận; thận trọng nếu đồng thời suy gan nặng. HD không cần bổ sung",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5% cho IV; lidocain chỉ dùng IM",
+      "vol": 100,
+      "time": 30,
+      "se": false,
+      "note_sol": "Không pha/truyền chung dung dịch chứa calci"
+    },
+    "notes": [
+      "Không dùng đồng thời đường truyền với dung dịch chứa calci; nguy cơ kết tủa.",
+      "Theo dõi mật giả sỏi, men gan, tiêu chảy.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'erythromycin', name:'Erythromycin', group:'Macrolide',
-    aliases:['erythromycin','erythro'],
-    route:'PO/IV', forms:['250mg viên','500mg viên/lọ'],
-    dosing:[
-      {cmin:0,cmax:999, nang:{d:'250 - 500mg',f:'q6h hoặc theo chỉ định'}}
+    "id": "meronem_1g",
+    "name": "Meronem 1g",
+    "active": "Meropenem",
+    "group": "Carbapenem",
+    "aliases": [
+      "meronem 1g",
+      "meropenem"
     ],
-    dialysis:'Không cần hiệu chỉnh liều theo bảng nguồn',
-    prep:{sol:'NaCl 0,9%',vol:250,time:60,se:false},
-    notes:[
-      'Theo dõi QTc, độc tính tiêu hóa và tương tác thuốc.',
-      'Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'
+    "route": "IV",
+    "forms": [
+      "1g/lọ"
     ],
-    alt:['azithromycin','clarithromycin','spiramycin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 50,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1g",
+          "f": "q8h"
+        },
+        "nang": {
+          "d": "2g",
+          "f": "q8h"
+        },
+        "nguy_kich": {
+          "d": "LD 2g; MD 2g",
+          "f": "q8h truyền kéo dài 3h"
+        }
+      },
+      {
+        "cmin": 26,
+        "cmax": 49,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1g",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "2g",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "LD 2g; MD 2g",
+          "f": "q12h truyền kéo dài 3h"
+        }
+      },
+      {
+        "cmin": 10,
+        "cmax": 25,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "1g",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "1g",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 9,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "1g",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "1g",
+          "f": "q24h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: 1g q8-12h, nhiễm nặng có thể truyền kéo dài",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 30,
+      "se": false,
+      "note_sol": "Truyền thường 30 phút; truyền kéo dài 3 giờ khi cần tối ưu PK/PD"
+    },
+    "notes": [
+      "Tránh phối hợp valproat: giảm mạnh nồng độ valproat, nguy cơ co giật.",
+      "Theo dõi độc thần kinh/co giật khi suy thận.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'spiramycin', name:'Spiramycin', group:'Macrolide',
-    aliases:['spiramycin','rovamycin'],
-    route:'PO', forms:['1,5 MUI viên','3 MUI viên'],
-    dosing:[
-      {cmin:0,cmax:999, nang:{d:'1,5 - 3 MUI',f:'q8-12h tùy chỉ định'}}
+    "id": "meropenem_1g",
+    "name": "Meropenem 1g",
+    "active": "Meropenem",
+    "group": "Carbapenem",
+    "aliases": [
+      "meropenem 1g",
+      "meropenem"
     ],
-    dialysis:'Không cần hiệu chỉnh liều theo bảng nguồn',
-    prep:{sol:'Không áp dụng',vol:100,time:30,se:false,note_sol:'Đường uống – không cần pha truyền'},
-    notes:['Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'],
-    alt:['azithromycin','clarithromycin','erythromycin']
+    "route": "IV",
+    "forms": [
+      "1g/lọ"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 50,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1g",
+          "f": "q8h"
+        },
+        "nang": {
+          "d": "2g",
+          "f": "q8h"
+        },
+        "nguy_kich": {
+          "d": "LD 2g; MD 2g",
+          "f": "q8h truyền kéo dài 3h"
+        }
+      },
+      {
+        "cmin": 26,
+        "cmax": 49,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1g",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "2g",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "LD 2g; MD 2g",
+          "f": "q12h truyền kéo dài 3h"
+        }
+      },
+      {
+        "cmin": 10,
+        "cmax": 25,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "1g",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "1g",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 9,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "1g",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "1g",
+          "f": "q24h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: 1g q8-12h, nhiễm nặng có thể truyền kéo dài",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 30,
+      "se": false,
+      "note_sol": "Truyền thường 30 phút; truyền kéo dài 3 giờ khi cần tối ưu PK/PD"
+    },
+    "notes": [
+      "Tránh phối hợp valproat: giảm mạnh nồng độ valproat, nguy cơ co giật.",
+      "Theo dõi độc thần kinh/co giật khi suy thận.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
   {
-    id:'tetracyclin', name:'Tetracyclin', group:'Tetracycline',
-    aliases:['tetracyclin','tetracycline'],
-    route:'PO', forms:['250mg viên','500mg viên'],
-    dosing:[
-      {cmin:50,cmax:999, nang:{d:'250 - 500mg',f:'q6h'}},
-      {cmin:10,cmax:49, nang:{d:'250 - 500mg',f:'q12-24h'}},
-      {cmin:0,cmax:9, nang:{d:'Tránh dùng hoặc kéo dài khoảng cách liều',f:'theo dõi độc tính'}}
+    "id": "metronidazol_iv_dv23",
+    "name": "Metronidazol 0,5g/100ml -DV23",
+    "active": "Metronidazol",
+    "group": "Nitroimidazole",
+    "aliases": [
+      "metronidazol 0,5g/100ml -dv23",
+      "metronidazol"
     ],
-    dialysis:'Không ưu tiên dùng trong suy thận nặng; tham khảo dược sĩ lâm sàng',
-    prep:{sol:'Không áp dụng',vol:100,time:30,se:false,note_sol:'Đường uống – không cần pha truyền'},
-    notes:[
-      'Tetracyclin cổ điển có nguy cơ tích lũy khi suy thận; doxycyclin thường phù hợp hơn.',
-      'Bổ sung từ bảng chỉnh liều kháng sinh/kháng nấm HSCC 2020.'
+    "route": "IV",
+    "forms": [
+      "0,5g/100ml"
     ],
-    alt:['doxycyclin','tigecyclin']
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 10,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg",
+          "f": "q8h"
+        },
+        "nang": {
+          "d": "500mg",
+          "f": "q8h"
+        },
+        "nguy_kich": {
+          "d": "500mg",
+          "f": "q8h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 9,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg",
+          "f": "q12h nếu điều trị kéo dài/nặng; đa số không cần chỉnh liều ngắn ngày"
+        },
+        "nang": {
+          "d": "500mg",
+          "f": "q12h nếu điều trị kéo dài/nặng; đa số không cần chỉnh liều ngắn ngày"
+        },
+        "nguy_kich": {
+          "d": "500mg",
+          "f": "q12h nếu điều trị kéo dài/nặng; đa số không cần chỉnh liều ngắn ngày"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu nếu liều trùng thời điểm HD; CRRT: thường không cần chỉnh nhiều",
+    "prep": {
+      "sol": "Dung dịch truyền sẵn/NaCl 0,9%",
+      "vol": 100,
+      "time": 30,
+      "se": false
+    },
+    "notes": [
+      "Tránh rượu trong khi dùng và ít nhất 48-72h sau ngừng.",
+      "Theo dõi độc thần kinh ngoại biên, men gan khi dùng kéo dài.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
   },
+  {
+    "id": "metronidazol_250",
+    "name": "Metronidazol 250",
+    "active": "Metronidazol",
+    "group": "Nitroimidazole",
+    "aliases": [
+      "metronidazol 250",
+      "metronidazol"
+    ],
+    "route": "PO",
+    "forms": [
+      "250mg viên"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 10,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg",
+          "f": "q8h"
+        },
+        "nang": {
+          "d": "500mg",
+          "f": "q8h"
+        },
+        "nguy_kich": {
+          "d": "500mg",
+          "f": "q8h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 9,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg",
+          "f": "q12h nếu điều trị kéo dài/nặng; đa số không cần chỉnh liều ngắn ngày"
+        },
+        "nang": {
+          "d": "500mg",
+          "f": "q12h nếu điều trị kéo dài/nặng; đa số không cần chỉnh liều ngắn ngày"
+        },
+        "nguy_kich": {
+          "d": "500mg",
+          "f": "q12h nếu điều trị kéo dài/nặng; đa số không cần chỉnh liều ngắn ngày"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu nếu liều trùng thời điểm HD; CRRT: thường không cần chỉnh nhiều",
+    "prep": {
+      "sol": "Dung dịch truyền sẵn/NaCl 0,9%",
+      "vol": 100,
+      "time": 30,
+      "se": false
+    },
+    "notes": [
+      "Tránh rượu trong khi dùng và ít nhất 48-72h sau ngừng.",
+      "Theo dõi độc thần kinh ngoại biên, men gan khi dùng kéo dài.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
+  },
+  {
+    "id": "moxifloxacin_imp_400",
+    "name": "Moxifloxacin IMP 400 mg/250mL",
+    "active": "Moxifloxacin",
+    "group": "Fluoroquinolone",
+    "aliases": [
+      "moxifloxacin imp 400 mg/250ml",
+      "moxifloxacin"
+    ],
+    "route": "IV",
+    "forms": [
+      "400mg/250ml"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 0,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "400mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "400mg",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "400mg",
+          "f": "q24h"
+        }
+      }
+    ],
+    "dialysis": "Không cần hiệu chỉnh thận; HD/CRRT không cần bổ sung thường quy",
+    "prep": {
+      "sol": "Dung dịch truyền sẵn",
+      "vol": 250,
+      "time": 60,
+      "se": false,
+      "note_sol": "Truyền tối thiểu 60 phút"
+    },
+    "notes": [
+      "Nguy cơ kéo dài QT cao hơn một số fluoroquinolone khác; tránh phối hợp thuốc kéo dài QT.",
+      "Không có chỉ định tiết niệu do nồng độ nước tiểu thấp.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
+  },
+  {
+    "id": "nerusyn_1_5g_ttkn25",
+    "name": "Nerusyn 1,5g TTKN-25",
+    "active": "Ampicilin + sulbactam",
+    "group": "Penicillin + ức chế beta-lactamase",
+    "aliases": [
+      "nerusyn 1,5g ttkn-25",
+      "ampicilin + sulbactam"
+    ],
+    "route": "IV",
+    "forms": [
+      "1g + 0,5g lọ"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 30,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1,5-3g",
+          "f": "q6h"
+        },
+        "nang": {
+          "d": "1,5-3g",
+          "f": "q6h"
+        },
+        "nguy_kich": {
+          "d": "1,5-3g",
+          "f": "q6h"
+        }
+      },
+      {
+        "cmin": 15,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1,5-3g",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "1,5-3g",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "1,5-3g",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 5,
+        "cmax": 14,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1,5-3g",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "1,5-3g",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "1,5-3g",
+          "f": "q24h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 4,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1,5g",
+          "f": "q24-48h"
+        },
+        "nang": {
+          "d": "1,5g",
+          "f": "q24-48h"
+        },
+        "nguy_kich": {
+          "d": "1,5g",
+          "f": "q24-48h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: 1,5-3g q8-12h tùy tốc độ lọc",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 30,
+      "se": false
+    },
+    "notes": [
+      "Theo dõi dị ứng beta-lactam, men gan, tiêu chảy.",
+      "Phổ có thể dùng Acinetobacter nhạy cảm với sulbactam; liều sulbactam cần đủ trong nhiễm nặng.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
+  },
+  {
+    "id": "ocebiso_syt25",
+    "name": "Ocebiso SYT-25",
+    "active": "Sulfamethoxazol + trimethoprim",
+    "group": "Sulfonamid phối hợp",
+    "aliases": [
+      "ocebiso syt-25",
+      "sulfamethoxazol + trimethoprim"
+    ],
+    "route": "PO",
+    "forms": [
+      "400mg + 80mg viên"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 30,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1 viên 400/80mg",
+          "f": "q12h; PCP/NT nặng tính theo TMP mg/kg"
+        },
+        "nang": {
+          "d": "TMP 8-10mg/kg/ngày",
+          "f": "chia q6-12h"
+        },
+        "nguy_kich": {
+          "d": "TMP 15-20mg/kg/ngày",
+          "f": "chia q6-8h, TDM/điện giải"
+        }
+      },
+      {
+        "cmin": 15,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "50% liều thường dùng",
+          "f": "hoặc kéo dài khoảng cách liều"
+        },
+        "nang": {
+          "d": "TMP 5mg/kg",
+          "f": "q12-24h"
+        },
+        "nguy_kich": {
+          "d": "Giảm 50% liều",
+          "f": "theo dõi sát"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 14,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "Tránh dùng nếu có lựa chọn khác",
+          "f": "nếu bắt buộc dùng theo dõi sát"
+        },
+        "nang": {
+          "d": "Không khuyến cáo",
+          "f": ""
+        },
+        "nguy_kich": {
+          "d": "Hội chẩn",
+          "f": ""
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: cá thể hóa theo chỉ định và TMP mg/kg",
+    "prep": {
+      "sol": "Không áp dụng",
+      "vol": 0,
+      "time": 0,
+      "se": false,
+      "note_sol": "Dạng uống"
+    },
+    "notes": [
+      "Theo dõi kali máu, creatinin, công thức máu; tránh phối hợp ACEI/ARB/spironolacton nếu nguy cơ tăng K+.",
+      "Cẩn trọng thiếu G6PD, dị ứng sulfonamid, suy gan/thận nặng.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
+  },
+  {
+    "id": "ozanier_500",
+    "name": "Ozanier 500mg",
+    "active": "Levofloxacin",
+    "group": "Fluoroquinolone",
+    "aliases": [
+      "ozanier 500mg",
+      "levofloxacin"
+    ],
+    "route": "PO",
+    "forms": [
+      "500mg viên"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 50,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "750mg",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "750mg",
+          "f": "q24h"
+        }
+      },
+      {
+        "cmin": 20,
+        "cmax": 49,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg liều đầu, sau đó 250mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "750mg",
+          "f": "q48h"
+        },
+        "nguy_kich": {
+          "d": "750mg",
+          "f": "q48h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 19,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "500mg liều đầu, sau đó 250mg",
+          "f": "q48h"
+        },
+        "nang": {
+          "d": "750mg liều đầu, sau đó 500mg",
+          "f": "q48h"
+        },
+        "nguy_kich": {
+          "d": "750mg liều đầu, sau đó 500mg",
+          "f": "q48h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: thường 500mg q24-48h tùy tốc độ lọc",
+    "prep": {
+      "sol": "Dung dịch truyền sẵn hoặc NaCl 0,9%/Glucose 5%",
+      "vol": 100,
+      "time": 60,
+      "se": false,
+      "note_sol": "Tránh truyền nhanh; không pha chung cation đa hóa trị"
+    },
+    "notes": [
+      "Nguy cơ kéo dài QT, viêm gân/đứt gân, rối loạn đường huyết và thần kinh ngoại biên.",
+      "Tránh dùng chung thuốc kéo dài QT; uống cách antacid/sắt/kẽm.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
+  },
+  {
+    "id": "tamisynt_500",
+    "name": "Tamisynt 500mg",
+    "active": "Ciprofloxacin",
+    "group": "Fluoroquinolone",
+    "aliases": [
+      "tamisynt 500mg",
+      "ciprofloxacin"
+    ],
+    "route": "PO",
+    "forms": [
+      "500mg viên"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 50,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "IV 400mg q12h hoặc PO 500mg",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "IV 400mg q8h hoặc PO 750mg",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "IV 400mg q8h hoặc PO 750mg",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 30,
+        "cmax": 49,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 5,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q18-24h"
+        },
+        "nang": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q18-24h"
+        },
+        "nguy_kich": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q18-24h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 4,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "IV 400mg hoặc PO 500mg",
+          "f": "q24h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: 400mg q12-24h tùy tốc độ lọc",
+    "prep": {
+      "sol": "Dung dịch truyền/NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 60,
+      "se": false
+    },
+    "notes": [
+      "Nguy cơ kéo dài QT, viêm gân, rối loạn đường huyết; tránh phối hợp cation đường uống.",
+      "Theo dõi tương tác warfarin, theophyllin, thuốc kéo dài QT.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
+  },
+  {
+    "id": "tazopelin_4_5g",
+    "name": "Tazopelin 4,5g",
+    "active": "Piperacilin + tazobactam",
+    "group": "Penicillin + ức chế beta-lactamase",
+    "aliases": [
+      "tazopelin 4,5g",
+      "piperacilin + tazobactam"
+    ],
+    "route": "IV",
+    "forms": [
+      "4,5g/lọ"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 40,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "3,375-4,5g",
+          "f": "q6h"
+        },
+        "nang": {
+          "d": "4,5g",
+          "f": "q6h"
+        },
+        "nguy_kich": {
+          "d": "4,5g",
+          "f": "q6h truyền kéo dài 4h"
+        }
+      },
+      {
+        "cmin": 20,
+        "cmax": 39,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "2,25-3,375g",
+          "f": "q6-8h"
+        },
+        "nang": {
+          "d": "4,5g",
+          "f": "q8h truyền kéo dài 4h"
+        },
+        "nguy_kich": {
+          "d": "4,5g",
+          "f": "q8h truyền kéo dài 4h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 19,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "2,25g",
+          "f": "q8h"
+        },
+        "nang": {
+          "d": "4,5g",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "4,5g",
+          "f": "q12h"
+        }
+      }
+    ],
+    "dialysis": "HD: 2,25g q8h và bổ sung sau HD; CRRT: 3,375g q6h hoặc 4,5g q8h tùy tốc độ lọc",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 30,
+      "se": false,
+      "note_sol": "Truyền thường 30 phút hoặc kéo dài 4 giờ theo phác đồ"
+    },
+    "notes": [
+      "Cân nhắc truyền kéo dài trong nhiễm nặng/Pseudomonas.",
+      "Theo dõi natri, kali, chức năng thận; phối hợp vancomycin có thể tăng nguy cơ AKI.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
+  },
+  {
+    "id": "tenamyd_cefotaxime_1000",
+    "name": "Tenamyd-Cefotaxime 1000",
+    "active": "Cefotaxim",
+    "group": "Cephalosporin thế hệ 3",
+    "aliases": [
+      "tenamyd-cefotaxime 1000",
+      "cefotaxim"
+    ],
+    "route": "IV",
+    "forms": [
+      "1000mg/lọ"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 50,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1-2g",
+          "f": "q6-8h"
+        },
+        "nang": {
+          "d": "1-2g",
+          "f": "q6-8h"
+        },
+        "nguy_kich": {
+          "d": "1-2g",
+          "f": "q6-8h"
+        }
+      },
+      {
+        "cmin": 10,
+        "cmax": 49,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1g",
+          "f": "q8-12h"
+        },
+        "nang": {
+          "d": "1g",
+          "f": "q8-12h"
+        },
+        "nguy_kich": {
+          "d": "1g",
+          "f": "q8-12h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 9,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1g",
+          "f": "q24h hoặc 50% liều thường dùng"
+        },
+        "nang": {
+          "d": "1g",
+          "f": "q24h hoặc 50% liều thường dùng"
+        },
+        "nguy_kich": {
+          "d": "1g",
+          "f": "q24h hoặc 50% liều thường dùng"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: 1-2g q8-12h tùy tốc độ lọc",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 30,
+      "se": false
+    },
+    "notes": [
+      "Theo dõi dị ứng beta-lactam, bạch cầu nếu dùng kéo dài.",
+      "Không có tác dụng với Pseudomonas.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
+  },
+  {
+    "id": "unasyn",
+    "name": "Unasyn",
+    "active": "Ampicilin + sulbactam",
+    "group": "Penicillin + ức chế beta-lactamase",
+    "aliases": [
+      "unasyn",
+      "ampicilin + sulbactam"
+    ],
+    "route": "IV",
+    "forms": [
+      "1,5g lọ"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 30,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1,5-3g",
+          "f": "q6h"
+        },
+        "nang": {
+          "d": "1,5-3g",
+          "f": "q6h"
+        },
+        "nguy_kich": {
+          "d": "1,5-3g",
+          "f": "q6h"
+        }
+      },
+      {
+        "cmin": 15,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1,5-3g",
+          "f": "q12h"
+        },
+        "nang": {
+          "d": "1,5-3g",
+          "f": "q12h"
+        },
+        "nguy_kich": {
+          "d": "1,5-3g",
+          "f": "q12h"
+        }
+      },
+      {
+        "cmin": 5,
+        "cmax": 14,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1,5-3g",
+          "f": "q24h"
+        },
+        "nang": {
+          "d": "1,5-3g",
+          "f": "q24h"
+        },
+        "nguy_kich": {
+          "d": "1,5-3g",
+          "f": "q24h"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 4,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "1,5g",
+          "f": "q24-48h"
+        },
+        "nang": {
+          "d": "1,5g",
+          "f": "q24-48h"
+        },
+        "nguy_kich": {
+          "d": "1,5g",
+          "f": "q24-48h"
+        }
+      }
+    ],
+    "dialysis": "HD: dùng sau lọc máu; CRRT: 1,5-3g q8-12h tùy tốc độ lọc",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 30,
+      "se": false
+    },
+    "notes": [
+      "Theo dõi dị ứng beta-lactam, men gan, tiêu chảy.",
+      "Phổ có thể dùng Acinetobacter nhạy cảm với sulbactam; liều sulbactam cần đủ trong nhiễm nặng.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
+  },
+  {
+    "id": "vancomycin_1g",
+    "name": "Vancomycin 1g",
+    "active": "Vancomycin",
+    "group": "Glycopeptide",
+    "aliases": [
+      "vancomycin 1g",
+      "vancomycin"
+    ],
+    "route": "IV",
+    "forms": [
+      "1000mg/lọ"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 60,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 20-25mg/kg; MD 15-20mg/kg",
+          "f": "q8-12h theo AUC/TDM"
+        },
+        "nang": {
+          "d": "LD 25-30mg/kg nếu nặng; MD theo AUC",
+          "f": "q8-12h"
+        },
+        "nguy_kich": {
+          "d": "LD 25-30mg/kg nếu nặng; MD theo AUC",
+          "f": "q8-12h"
+        }
+      },
+      {
+        "cmin": 30,
+        "cmax": 59,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24h theo AUC/TDM"
+        },
+        "nang": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24h theo AUC/TDM"
+        },
+        "nguy_kich": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24h theo AUC/TDM"
+        }
+      },
+      {
+        "cmin": 15,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24-48h theo nồng độ"
+        },
+        "nang": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24-48h theo nồng độ"
+        },
+        "nguy_kich": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24-48h theo nồng độ"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 14,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 20-25mg/kg; liều duy trì theo nồng độ",
+          "f": "không dùng lịch cố định nếu chưa TDM"
+        },
+        "nang": {
+          "d": "LD 20-25mg/kg; liều duy trì theo nồng độ",
+          "f": "không dùng lịch cố định nếu chưa TDM"
+        },
+        "nguy_kich": {
+          "d": "LD 20-25mg/kg; liều duy trì theo nồng độ",
+          "f": "không dùng lịch cố định nếu chưa TDM"
+        }
+      }
+    ],
+    "dialysis": "HD: LD 20-25mg/kg, bổ sung sau HD theo nồng độ; CRRT: LD 20-25mg/kg, MD thường 10-15mg/kg q24h hoặc theo AUC/TDM",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 250,
+      "time": 60,
+      "se": false,
+      "note_sol": "Tốc độ ≤10mg/phút; 1g truyền ≥60 phút, 500mg ≥30-60 phút"
+    },
+    "notes": [
+      "TDM/AUC bắt buộc khi điều trị nặng/kéo dài/suy thận; mục tiêu AUC24/MIC 400-600 nếu áp dụng.",
+      "Theo dõi SCr, phản ứng truyền “red man”, độc tai; tránh phối hợp độc thận nếu có thể.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
+  },
+  {
+    "id": "vancomycin_500mg",
+    "name": "Vancomycin 500mg",
+    "active": "Vancomycin",
+    "group": "Glycopeptide",
+    "aliases": [
+      "vancomycin 500mg",
+      "vancomycin"
+    ],
+    "route": "IV",
+    "forms": [
+      "500mg/lọ"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 60,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 20-25mg/kg; MD 15-20mg/kg",
+          "f": "q8-12h theo AUC/TDM"
+        },
+        "nang": {
+          "d": "LD 25-30mg/kg nếu nặng; MD theo AUC",
+          "f": "q8-12h"
+        },
+        "nguy_kich": {
+          "d": "LD 25-30mg/kg nếu nặng; MD theo AUC",
+          "f": "q8-12h"
+        }
+      },
+      {
+        "cmin": 30,
+        "cmax": 59,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24h theo AUC/TDM"
+        },
+        "nang": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24h theo AUC/TDM"
+        },
+        "nguy_kich": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24h theo AUC/TDM"
+        }
+      },
+      {
+        "cmin": 15,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24-48h theo nồng độ"
+        },
+        "nang": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24-48h theo nồng độ"
+        },
+        "nguy_kich": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24-48h theo nồng độ"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 14,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 20-25mg/kg; liều duy trì theo nồng độ",
+          "f": "không dùng lịch cố định nếu chưa TDM"
+        },
+        "nang": {
+          "d": "LD 20-25mg/kg; liều duy trì theo nồng độ",
+          "f": "không dùng lịch cố định nếu chưa TDM"
+        },
+        "nguy_kich": {
+          "d": "LD 20-25mg/kg; liều duy trì theo nồng độ",
+          "f": "không dùng lịch cố định nếu chưa TDM"
+        }
+      }
+    ],
+    "dialysis": "HD: LD 20-25mg/kg, bổ sung sau HD theo nồng độ; CRRT: LD 20-25mg/kg, MD thường 10-15mg/kg q24h hoặc theo AUC/TDM",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 60,
+      "se": false,
+      "note_sol": "Tốc độ ≤10mg/phút; 1g truyền ≥60 phút, 500mg ≥30-60 phút"
+    },
+    "notes": [
+      "TDM/AUC bắt buộc khi điều trị nặng/kéo dài/suy thận; mục tiêu AUC24/MIC 400-600 nếu áp dụng.",
+      "Theo dõi SCr, phản ứng truyền “red man”, độc tai; tránh phối hợp độc thận nếu có thể.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
+  },
+  {
+    "id": "vecmid_500mg",
+    "name": "Vecmid 500mg",
+    "active": "Vancomycin",
+    "group": "Glycopeptide",
+    "aliases": [
+      "vecmid 500mg",
+      "vancomycin"
+    ],
+    "route": "IV",
+    "forms": [
+      "500mg/lọ"
+    ],
+    "dual_col": false,
+    "dosing": [
+      {
+        "cmin": 60,
+        "cmax": 999,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 20-25mg/kg; MD 15-20mg/kg",
+          "f": "q8-12h theo AUC/TDM"
+        },
+        "nang": {
+          "d": "LD 25-30mg/kg nếu nặng; MD theo AUC",
+          "f": "q8-12h"
+        },
+        "nguy_kich": {
+          "d": "LD 25-30mg/kg nếu nặng; MD theo AUC",
+          "f": "q8-12h"
+        }
+      },
+      {
+        "cmin": 30,
+        "cmax": 59,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24h theo AUC/TDM"
+        },
+        "nang": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24h theo AUC/TDM"
+        },
+        "nguy_kich": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24h theo AUC/TDM"
+        }
+      },
+      {
+        "cmin": 15,
+        "cmax": 29,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24-48h theo nồng độ"
+        },
+        "nang": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24-48h theo nồng độ"
+        },
+        "nguy_kich": {
+          "d": "LD 20-25mg/kg; MD 15mg/kg",
+          "f": "q24-48h theo nồng độ"
+        }
+      },
+      {
+        "cmin": 0,
+        "cmax": 14,
+        "du_phong": null,
+        "trung_binh": {
+          "d": "LD 20-25mg/kg; liều duy trì theo nồng độ",
+          "f": "không dùng lịch cố định nếu chưa TDM"
+        },
+        "nang": {
+          "d": "LD 20-25mg/kg; liều duy trì theo nồng độ",
+          "f": "không dùng lịch cố định nếu chưa TDM"
+        },
+        "nguy_kich": {
+          "d": "LD 20-25mg/kg; liều duy trì theo nồng độ",
+          "f": "không dùng lịch cố định nếu chưa TDM"
+        }
+      }
+    ],
+    "dialysis": "HD: LD 20-25mg/kg, bổ sung sau HD theo nồng độ; CRRT: LD 20-25mg/kg, MD thường 10-15mg/kg q24h hoặc theo AUC/TDM",
+    "prep": {
+      "sol": "NaCl 0,9% hoặc Glucose 5%",
+      "vol": 100,
+      "time": 60,
+      "se": false,
+      "note_sol": "Tốc độ ≤10mg/phút; 1g truyền ≥60 phút, 500mg ≥30-60 phút"
+    },
+    "notes": [
+      "TDM/AUC bắt buộc khi điều trị nặng/kéo dài/suy thận; mục tiêu AUC24/MIC 400-600 nếu áp dụng.",
+      "Theo dõi SCr, phản ứng truyền “red man”, độc tai; tránh phối hợp độc thận nếu có thể.",
+      "Nguồn đối chiếu: Hướng dẫn sử dụng kháng sinh 708/QĐ-BYT, Dược thư Quốc gia Việt Nam lần 3; phần HD/CRRT/TDM/truyền kéo dài đối chiếu thêm tài liệu dược lâm sàng quốc tế khi tài liệu BYT không nêu chi tiết."
+    ],
+    "alt": []
+  }
 ];
 
 // ─── UTILITY ──────────────────────────────────────────────────────────────────
@@ -2657,12 +4393,7 @@ function renderCompanionSuggestions(val = '') {
   }
 
   let html = '';
-  let lastGroup = '';
   matches.forEach((a, i) => {
-    if (a.group !== lastGroup) {
-      lastGroup = a.group;
-      html += `<div style="padding:7px 12px 4px;background:#f3f6fb;color:var(--primary);font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;border-top:1px solid var(--border)">${escapeHtml(lastGroup)}</div>`;
-    }
     html += `<div class="item${i===0?' active':''}" data-id="${a.id}" onmousedown="addCompanionAB('${a.id}')">
       <div>
         <div class="drug-suggest-name" style="font-weight:600">${highlight(escapeHtml(a.name), query)}</div>
@@ -2922,42 +4653,22 @@ function strSim(a, b) {
   for (let i = 0; i < b.length - 1; i++) if (setA.has(b.slice(i, i+2))) hits++;
   return hits / Math.max(setA.size, b.length - 1, 1);
 }
-function getSelectedAntibioticGroup() {
-  const sel = document.getElementById('antibiotic-group-filter');
-  return sel ? sel.value : '';
-}
+function getSelectedAntibioticGroup() { return ''; }
 
 function sortABByGroup(list) {
-  return list.slice().sort((a, b) =>
-    (a.group || '').localeCompare(b.group || '', 'vi') ||
-    (a.name || '').localeCompare(b.name || '', 'vi')
-  );
+  return list.slice().sort((a, b) => (a.name || '').localeCompare(b.name || '', 'vi'));
 }
 
 function searchAB(val = '') {
   val = (val || '').toLowerCase().trim();
-  const groupFilter = getSelectedAntibioticGroup();
-
-  let base = AB.filter(a => !groupFilter || a.group === groupFilter);
-
-  let matches = !val ? base : base.filter(a =>
+  let matches = !val ? AB : AB.filter(a =>
     a.name.toLowerCase().includes(val) ||
-    (a.aliases || []).some(al => al.toLowerCase().includes(val)) ||
-    (a.group || '').toLowerCase().includes(val)
+    (a.active || '').toLowerCase().includes(val)
   );
-
   if (val && !matches.length) {
-    // Fuzzy fallback — always return something inside selected group if any
-    matches = base.map(a => ({
-      a,
-      score: Math.max(
-        strSim(a.name, val),
-        ...((a.aliases || []).map(al => strSim(al, val))),
-        strSim(a.group || '', val)
-      )
-    })).filter(x => x.score > 0.15).sort((x,y) => y.score - x.score).slice(0, 12).map(x => x.a);
+    matches = AB.map(a => ({ a, score: Math.max(strSim(a.name, val), strSim(a.active || '', val)) }))
+      .filter(x => x.score > 0.15).sort((x,y) => y.score - x.score).slice(0, 12).map(x => x.a);
   }
-
   return sortABByGroup(matches).slice(0, val ? 30 : 80);
 }
 
@@ -2989,6 +4700,8 @@ function initAntibioticGroupFilter() {
     groups.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
 }
 
+function getMatchedAlias(a, val = '') { return ''; }
+
 function renderAntibioticSuggestions(val = '') {
   const box = document.getElementById('suggestions');
   if (!box) return;
@@ -3009,7 +4722,7 @@ function renderAntibioticSuggestions(val = '') {
     html += `<div class="item${i===0?' active':''}" data-id="${a.id}" onmousedown="selectAB('${a.id}')">
       <div>
         <div class="drug-suggest-name" style="font-weight:600">${highlight(escapeHtml(a.name), val)}</div>
-        <div style="font-size:0.75rem;color:#888">${escapeHtml(a.route || '')}</div>
+        <div style="font-size:0.75rem;color:#888">${escapeHtml(a.route || '')}${a.active ? ' · Hoạt chất: ' + escapeHtml(a.active) : ''}${getMatchedAlias(a, val) ? ' · Tìm thấy: ' + escapeHtml(getMatchedAlias(a, val)) : ''}</div>
       </div>
       <span class="badge">${escapeHtml((a.group || '').split(' ')[0])}</span>
     </div>`;
@@ -3027,15 +4740,6 @@ abInput.addEventListener('input', function() {
 abInput.addEventListener('focus', function() {
   renderAntibioticSuggestions(this.value.toLowerCase().trim());
 });
-
-if (abGroupFilter) {
-  abGroupFilter.addEventListener('change', function() {
-    selectedAB = null;
-    document.getElementById('antibiotic-input').value = '';
-    document.getElementById('clear-btn').style.display = 'none';
-    renderAntibioticSuggestions('');
-  });
-}
 
 // Enter & arrow keys in autocomplete
 abInput.addEventListener('keydown', function(e) {
@@ -3165,7 +4869,7 @@ function renderTeicoplanin(crcl, cat, ab, isDialysis, weight, patientName = '') 
     </div>
     <div class="result-card">
       <div class="drug-name">${ab.name}</div>
-      <div class="drug-group">${ab.group} • ${ab.route}</div>
+      <div class="drug-group">${ab.group} • ${ab.route}${ab.active ? ` • Hoạt chất: ${escapeHtml(ab.active)}` : ``}</div>
       ${isDialysis ? `<div class="dialysis-badge">Bệnh nhân lọc máu – áp dụng liều lọc máu</div>
         <div class="dose-box" style="border-color:#e67e22;background:#fef9f0">
           <div class="dose-header" style="color:var(--warning)">Liều khi lọc máu (CRRT/HD)</div>
@@ -3255,7 +4959,7 @@ function renderColistin(crcl, cat, ab, isDialysis, weight, patientName = '') {
     </div>
     <div class="result-card">
       <div class="drug-name">${ab.name}</div>
-      <div class="drug-group">${ab.group} • ${ab.route}</div>
+      <div class="drug-group">${ab.group} • ${ab.route}${ab.active ? ` • Hoạt chất: ${escapeHtml(ab.active)}` : ``}</div>
       ${isDialysis ? `<div class="dialysis-badge">Bệnh nhân lọc máu – áp dụng liều lọc máu</div>
         <div class="dose-box" style="border-color:#e67e22;background:#fef9f0">
           <div class="dose-header" style="color:var(--warning)">Liều khi lọc máu (CRRT/HD)</div>
@@ -3523,7 +5227,7 @@ function renderResult(crcl, cat, ab, isDialysis, weight, patientName = '') {
 
     <div class="result-card">
       <div class="drug-name">${ab.name}</div>
-      <div class="drug-group">${ab.group} • ${ab.route}</div>
+      <div class="drug-group">${ab.group} • ${ab.route}${ab.active ? ` • Hoạt chất: ${escapeHtml(ab.active)}` : ``}</div>
 
       ${isDialysis ? `<div class="dialysis-badge">Bệnh nhân lọc máu – áp dụng liều lọc máu</div>` : ''}
 
