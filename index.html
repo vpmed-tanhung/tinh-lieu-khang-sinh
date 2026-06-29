@@ -3536,7 +3536,9 @@ let currentWeight = 60;
 
 // Roman numeral converter
 function toRoman(n) {
-  if (!n || n <= 0) return '0';
+  n = Number(n);
+  if (!Number.isFinite(n) || !n || n <= 0) return '—';
+  n = Math.min(Math.round(n), 9999);
   const vals = [1000,900,500,400,100,90,50,40,10,9,5,4,1];
   const syms = ['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
   let r = '';
@@ -3706,12 +3708,31 @@ function formatPrepStructured(ab, d) {
   const prep = ab.prep;
   const dose_str = d.d;
   const vol = prep.vol;
-  const time_min = prep.time;
-  const time_str = time_min >= 60 ? `${time_min/60}h` : `${time_min} phút`;
-  const sol_name = prep.note_sol || 'NaCl 0,9%';
+  const time_min = Number(prep.time || 0);
+  const sol_name = prep.note_sol || prep.sol || 'NaCl 0,9%';
   const forms_str = ab.forms ? ab.forms.join(' / ') : '';
 
   let drug_line = `${ab.name} (${forms_str || ab.route})`;
+
+  // Thuốc không truyền tĩnh mạch hoặc không có thời gian truyền (ví dụ benzathin benzylpenicilin IM)
+  // không được tính CTM/SE vì sẽ gây chia cho 0 và làm treo trang.
+  if (!Number.isFinite(time_min) || time_min <= 0 || /\bIM\b|tiêm bắp/i.test(ab.route || '') || /không tiêm\/truyền tĩnh mạch|tiêm bắp/i.test(sol_name)) {
+    const critical = [];
+    if (prep.note_sol) critical.push(`⚠ ${prep.note_sol}`);
+    if (ab.notes) {
+      ab.notes.forEach(n => {
+        if (/không dùng IV|không tiêm|tiêm bắp|phản vệ|dị ứng/i.test(n)) critical.push(n);
+      });
+    }
+    return {
+      drug_line,
+      solvent_line: prep.sol || sol_name,
+      rate_line: prep.note_sol || 'Dùng theo đường ghi trên chế phẩm; không tính tốc độ truyền.',
+      critical: [...new Set(critical)].slice(0, 3)
+    };
+  }
+
+  const time_str = time_min >= 60 ? `${time_min/60}h` : `${time_min} phút`;
 
   let solvent_line, rate_line;
   if (prep.se) {
